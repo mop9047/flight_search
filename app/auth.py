@@ -12,6 +12,14 @@ def login():
 def register():
 	return render_template('register.html')
 
+@auth.route('/register_customer')
+def register_customer():
+	return render_template('register_customer.html')
+
+@auth.route('/register_staff')
+def register_staff():
+	return render_template('register_staff.html')
+
 #Authenticates the login
 @auth.route('/loginAuth', methods=['GET', 'POST'])
 def loginAuth():

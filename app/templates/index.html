@@ -2,14 +2,24 @@
 <html>
 
 <head>
-
+	<nav>
+		{% if not message %}
+		<a href="/login">Login</a>
+		<a href="/register">Register</a>
+		{% endif %}
+	</nav>
 </head>
 
 <body>
-{% if not message %}
-	<a href="/login">Login</a>
-	<a href="/register">Register</a>
-{% endif %}
+
+	<h1>Welcome to Flight Search</h1>
+	<div>
+		hero image
+	</div>
+	<div>
+		<h2>Search for a flight here!</h2>
+		<p>Search logic here</p>
+	</div>
 
 {% if message %}
 	<a href="/logout">Logout</a>
