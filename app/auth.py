@@ -22,7 +22,7 @@ def loginAuth():
 	#cursor used to send queries
 	cursor = current_app.config['db'].cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s and password = %s'
+	query = 'SELECT * FROM user WHERE username = %s and password = md5(%s)' #md5 to hash password
 	cursor.execute(query, (username, password))
 	#stores the results in a variable
 	data = cursor.fetchone()
@@ -60,7 +60,7 @@ def registerAuth():
 		error = "This user already exists"
 		return render_template('register.html', error = error)
 	else:
-		ins = 'INSERT INTO user VALUES(%s, %s)'
+		ins = 'INSERT INTO user VALUES(%s, md5(%s))'  #added md5 to hash password
 		cursor.execute(ins, (username, password))
 		current_app.config['db'].commit()
 		cursor.close()
