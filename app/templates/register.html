@@ -1,14 +1,20 @@
 <html>
-  <head> </head>
+  <head>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
   <body>
     <h1>What type of user are you?</h1>
-    <div>
-      <div>
+    <div class="lr_flexbox">
+      <div class="container">
         <h3>Customer</h3>
         <p>Search and book flights!</p>
         <a href="/register_customer">Register here!</a>
       </div>
-      <div>
+      <div class="container">
         <h3>Airline Staff</h3>
         <p>Manage flights</p>
         <a href="/register_staff">Register here!</a>
