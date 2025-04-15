@@ -15,7 +15,7 @@ def create_app():
                         user='root',
                         password='root',
                         unix_socket='/Applications/MAMP/tmp/mysql/mysql.sock',
-                        database='blog',
+                        database='flights_new',
                         charset='utf8mb4',
                         cursorclass=pymysql.cursors.DictCursor)
 
