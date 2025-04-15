@@ -75,6 +75,33 @@ def registerAuth():
 		cursor.close()
 		return render_template('index.html')
 	
+#Authenticates the login of Customer
+@auth.route('/loginAuthCust', methods=['GET', 'POST'])
+def loginAuthCust():
+	#grabs information from the forms
+	username = request.form['email']
+	password = request.form['password']
+
+	#cursor used to send queries
+	cursor = current_app.config['db'].cursor()
+	#executes query
+	query = 'SELECT * FROM Customer WHERE email = %s and password = md5(%s)' #md5 to hash password
+	cursor.execute(query, (username, password))
+	#stores the results in a variable
+	data = cursor.fetchone()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	error = None
+	if(data):
+		#creates a session for the the user
+		#session is a built in
+		session['username'] = username
+		return redirect(url_for('main.home'))
+	else:
+		#returns an error message to the html page
+		error = 'Invalid login or username'
+		return render_template('login.html', error=error)
+	
 #Authenticates the register of Customer
 @auth.route('/registerAuthCustomer', methods=['GET', 'POST'])
 def registerAuthCust():
