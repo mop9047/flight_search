@@ -53,11 +53,12 @@ def registerAuth():
 	#grabs information from the forms
 	username = request.form['username']
 	password = request.form['password']
+	usertype = request.form['user_type']
 
 	#cursor used to send queries
 	cursor = current_app.config['db'].cursor()
 	#executes query
-	query = 'SELECT * FROM user WHERE username = %s'
+	query = f"SELECT * FROM {usertype} WHERE email = %s"
 	cursor.execute(query, (username))
 	#stores the results in a variable
 	data = cursor.fetchone()
@@ -68,8 +69,45 @@ def registerAuth():
 		error = "This user already exists"
 		return render_template('register.html', error = error)
 	else:
-		ins = 'INSERT INTO user VALUES(%s, md5(%s))'  #added md5 to hash password
-		cursor.execute(ins, (username, password))
+		ins = 'INSERT INTO {usertype} VALUES(%s, md5(%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'  #added md5 to hash password
+		cursor.execute(ins, (username, password,))
+		current_app.config['db'].commit()
+		cursor.close()
+		return render_template('index.html')
+	
+#Authenticates the register of Customer
+@auth.route('/registerAuthCustomer', methods=['GET', 'POST'])
+def registerAuthCust():
+	#grabs information from the forms
+	email = request.form['email']
+	password = request.form['password']
+	name = request.form['name']
+	buidling_num = request.form['building_num']
+	street = request.form['street']
+	city = request.form['city']
+	state = request.form['state']
+	phone_num = request.form['phone_number']
+	passport_number = request.form['passport_number']
+	passport_expiration = request.form['passport_expiration']
+	passport_country = request.form['passport_country']
+	date_of_birth = request.form['date_of_birth']
+
+	#cursor used to send queries
+	cursor = current_app.config['db'].cursor()
+	#executes query
+	query = "SELECT * FROM Customer WHERE email = %s"
+	cursor.execute(query, (email))
+	#stores the results in a variable
+	data = cursor.fetchone()
+	#use fetchall() if you are expecting more than 1 data row
+	error = None
+	if(data):
+		#If the previous query returns data, then user exists
+		error = "This user already exists"
+		return render_template('register.html', error = error)
+	else:
+		ins = 'INSERT INTO Customer VALUES(%s, md5(%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'  #added md5 to hash password
+		cursor.execute(ins, (email, password, name,buidling_num,street,city,state,phone_num,passport_number,passport_expiration,passport_country,date_of_birth))
 		current_app.config['db'].commit()
 		cursor.close()
 		return render_template('index.html')
