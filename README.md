@@ -6,7 +6,7 @@
 ## Run in Your Computer
 
 1. Start the database in MAMP
-2. Create a databse called 'blog' and enter the queries from `simple.sql` to have the tables setup
+2. Create a databse called 'flights_new' and enter the queries from `create_tables.SQL` to have the tables setup
 3. Run the `run.py` in vscode and paste the url `http://127.0.0.1:8889` in your browser
 
 ## Make a new branch
