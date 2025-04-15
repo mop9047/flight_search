@@ -7,10 +7,10 @@
 	<h2>What type of user are you?</h2>
 	<div class="lr_flexbox">
 		<div class="form-container">
-			<form action="/loginAuth" method="POST">
+			<form action="/loginAuthCust" method="POST">
 				<h2>Customer</h2>
 				<p>	Log in with your credentials below: </p>
-				<input type="text" name = "username" placeholder="username" required/> </br>
+				<input type="text" name = "email" placeholder="email" required/> </br>
 				<input type="password" name = "password" placeholder="password" required/></br>
 				<button type="submit"> Login</button>
 				{% if error %}
