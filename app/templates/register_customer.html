@@ -7,8 +7,10 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
+    <div class="form-container">
     <form action="/registerAuthCustomer" method="POST">
+        <h2>Customer Register</h2>
+        <p>	Log in with your credentials below: </p>
         <input type="text" name = "email" placeholder="email" required/> </br>
         <input type="password" name = "password" placeholder="password" required/></br>
         <input type="text" name = "name" placeholder="Name" required/></br>
@@ -21,10 +23,11 @@
         <input type="text" name = "passport_expiration" placeholder="Passport Expiration" required/></br>
         <input type="text" name = "passport_country" placeholder="Passport Country" required/></br>
         <input type="text" name = "date_of_birth" placeholder="Date of Birth" required/></br>
-        <input type="submit" value = Register />
+        <button type="submit"> Register</button>
         {% if error %}
             <p class="error"><strong>Error:</strong> {{error}}</p>
         {% endif %}
     </form>
+    </div>
 </body>
 </html>

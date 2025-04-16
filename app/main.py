@@ -6,33 +6,42 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-# @main.route('/home')
-# def home():
-    
-#     username = session['username']
-#     cursor = current_app.config['db'].cursor();
-#     query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-#     cursor.execute(query, (username))
-#     data1 = cursor.fetchall() 
-#     for each in data1:
-#         print(each['blog_post'])
-#     cursor.close()
-#     return render_template('home.html', username=username, posts=data1)
-
 @main.route('/home')
 def home():
-    
+    # redirect the home page to home_customer or home_staff
+    usertype = session['usertype']
+    if usertype == 'staff':
+        return redirect(url_for('main.home_staff'))
+    elif usertype == 'customer':
+        return redirect(url_for('main.home_cust'))
+
+@main.route('/home_customer', methods = ['GET','POST'])
+def home_cust():
     username = session['username']
+
     cursor = current_app.config['db'].cursor();
-    query = 'SELECT name,email FROM Customer WHERE email = %s'
+    query = 'SELECT name FROM Customer WHERE email = %s'
+    cursor.execute(query, (username))
+    data = cursor.fetchone() 
+    
+    cursor.close()
+    return render_template('home_customer.html', username=data['name'], posts=data)
+
+@main.route('/home_staff', methods = ['GET','POST'])
+def home_staff():
+    username = session['username']
+
+    cursor = current_app.config['db'].cursor();
+    query = 'SELECT f_name FROM Airline_Staff WHERE username = %s'
     cursor.execute(query, (username))
     data1 = cursor.fetchall() 
+    
     for each in data1:
-        name = each['name']
-        print(each['email'])
+        name = each['f_name']
+    
     cursor.close()
-    return render_template('home.html', username=name, posts=data1)
-
+    return render_template('home_airlineStaff.html', username=name, posts=data1)
+     
 		
 @main.route('/post', methods=['GET', 'POST'])
 def post():
@@ -47,5 +56,6 @@ def post():
 
 @main.route('/logout')
 def logout():
-	session.pop('username')
-	return redirect('/')
+    session.pop('username')
+    session.pop('usertype')
+    return redirect('/')

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, url_for, redirect
+from flask import Flask
 import pymysql.cursors
 
 def create_app():

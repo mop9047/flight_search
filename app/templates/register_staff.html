@@ -8,16 +8,20 @@
 </head>
 <body>
     <div class="form-container">
-        <form action="/registerAuth" method="POST">
+        <form action="/registerAuthAirlineStaff" method="POST">
             <h2>Airline Staff</h2>
             <p>	Log in with your credentials below: </p>
             <input type="text" name = "username" placeholder="username" required/> </br>
             <input type="password" name = "password" placeholder="password" required/></br>
-            <button type="submit"> Login</button>
+            <input type="text" name = "f_name" placeholder="First Name" required/></br>
+            <input type="text" name = "l_name" placeholder="Last Name" required/></br>
+            <input type="text" name = "date_of_birth" placeholder="Date of Birth" required/></br>
+            <input type="text" name = "airline_name" placeholder="Airline Name" required/></br>
+            <button type="submit"> Register</button>
             {% if error %}
                 <p class="error"><strong>Error:</strong> {{error}}</p>
             {% endif %}
         </form>
-    </div>
+        </div>
 </body>
 </html>
