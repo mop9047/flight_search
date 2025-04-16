@@ -101,6 +101,28 @@ nav {
   }
 }
 
+.sidebar {
+  width: 200px;
+  background-color: #2c3e50;
+  padding-top: 20px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 50vh;
+  position: fixed;
+}
+
+.sidebar a {
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #ecf0f1;
+  display: block;
+  transition: background 0.3s;
+}
+
+.sidebar a:hover {
+  background-color: #34495e;
+}
 /* CSS for forms */
 .form-container {
   max-width: 400px;

@@ -12,4 +12,16 @@ def home_cust():
     data = cursor.fetchone() 
     
     cursor.close()
-    return render_template('home_customer.html', username=data['name'], posts=data)
+    return render_template('customer/home_customer.html', username=data['name'], posts=data)
+
+@main.route('/home_customer_flight', methods = ['GET','POST'])
+def home_cust_flight():
+    return render_template('customer/home_customer_flight.html',username=session['username'])
+
+@main.route('/home_customer_search', methods = ['GET','POST'])
+def home_cust_search():
+    return render_template('customer/home_customer_search.html',username=session['username'])
+
+@main.route('/home_customer_rate', methods = ['GET','POST'])
+def home_cust_rate():
+    return render_template('customer/home_customer_rate.html',username=session['username'])
