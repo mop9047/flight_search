@@ -19,7 +19,33 @@ def home_staff():
 
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
 def home_staff_airport():
-    return render_template('staff/home_airlineStaff_airport.html',username=session['username'])
+    #grabs informatioin from the forms
+    Airport_id = request.form['Airport_id']
+    name = request.form['name']
+    city = request.form['city']
+    country = request.form['country']
+
+
+    #cursor used to send queries
+    cursor = current_app.config['db'].cursor()
+	#executes query
+    query = "SELECT * FROM Airport WHERE Airport_id = %s"
+    cursor.execute(query, (Airport_id))
+	#stores the results in a variable
+    data = cursor.fetchone()
+	#use fetchall() if you are expecting more than 1 data row
+    error = None
+    if(data):
+		#If the previous query returns data, then user exists
+        error = "This airport already exists"
+        return render_template('home_airlineStaff_airport.html', error = error)
+    else:
+        ins = 'INSERT INTO Airport VALUES(%s,%s,%s,%s)'  #added md5 to hash password
+        cursor.execute(ins, (Airport_id, name, city,country))
+        current_app.config['db'].commit()
+        cursor.close()
+        return render_template('index.html')
+
 
 @main.route('/home_airlineStaff_airplane', methods = ['GET','POST'])
 def home_staff_airplane():
