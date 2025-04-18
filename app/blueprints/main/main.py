@@ -14,9 +14,11 @@ def home():
         return redirect(url_for('mainCust.home_cust'))
     elif usertype == 'staff':
         return redirect(url_for('mainStaff.home_staff'))
+    print("zeus")
 
 @main.route('/logout')
 def logout():
     session.pop('username')
     session.pop('usertype')
     return redirect('/')
+
