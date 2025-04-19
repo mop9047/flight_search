@@ -34,6 +34,7 @@ def loginAuthCust():
 @auth.route('/registerAuthCustomer', methods=['GET', 'POST'])
 def registerAuthCust():
 	#grabs information from the forms
+<<<<<<< HEAD
 	email = request.form['email']
 	password = request.form['password']
 	name = request.form['name']
@@ -46,12 +47,37 @@ def registerAuthCust():
 	passport_expiration = request.form['passport_expiration']
 	passport_country = request.form['passport_country']
 	date_of_birth = request.form['date_of_birth']
+=======
+	email = request.form.get('email')
+	password = request.form.get('password')
+	name = request.form.get('name')
+	building_num = request.form.get('building_num')
+	street = request.form.get('street')
+	city = request.form.get('city')
+	state = request.form.get('state')
+	phone_num = request.form.get('phone_number')
+	passport_number = request.form.get('passport_number')
+	passport_expiration = request.form.get('passport_expiration')
+	passport_country = request.form.get('passport_country')
+	date_of_birth = request.form.get('date_of_birth')
+
+	# Check if all required fields are provided
+	if not all([email, password, name, building_num, street, city, state, 
+	           phone_num, passport_number, passport_expiration, 
+	           passport_country, date_of_birth]):
+		error = "All fields are required"
+		return render_template('register_customer.html', error=error)
+>>>>>>> search_func_And_cust_func
 
 	#cursor used to send queries
 	cursor = current_app.config['db'].cursor()
 	#executes query
 	query = "SELECT * FROM Customer WHERE email = %s"
+<<<<<<< HEAD
 	cursor.execute(query, (email))
+=======
+	cursor.execute(query, (email,))  # Fixed: added comma to make it a tuple
+>>>>>>> search_func_And_cust_func
 	#stores the results in a variable
 	data = cursor.fetchone()
 	#use fetchall() if you are expecting more than 1 data row
@@ -59,10 +85,19 @@ def registerAuthCust():
 	if(data):
 		#If the previous query returns data, then user exists
 		error = "This user already exists"
+<<<<<<< HEAD
 		return render_template('register.html', error = error)
 	else:
 		ins = 'INSERT INTO Customer VALUES(%s, md5(%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'  #added md5 to hash password
 		cursor.execute(ins, (email, password, name,buidling_num,street,city,state,phone_num,passport_number,passport_expiration,passport_country,date_of_birth))
+=======
+		return render_template('register_customer.html', error=error)
+	else:
+		ins = 'INSERT INTO Customer VALUES(%s, md5(%s),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'  #added md5 to hash password
+		cursor.execute(ins, (email, password, name, building_num, street, city, state, 
+		                    phone_num, passport_number, passport_expiration, 
+		                    passport_country, date_of_birth))
+>>>>>>> search_func_And_cust_func
 		current_app.config['db'].commit()
 		cursor.close()
 		return render_template('index.html')
