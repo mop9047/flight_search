@@ -34,8 +34,11 @@
       <div class="container">
         {% block content %}
         <h1>Select an Option to Start</h1>
-        {% endblock %}
+        {% endblock %} {% if error=='No Session'%}
+        <h1>404 Not found</h1>
+        {%endif%}
       </div>
     </div>
+    {% block scripts %}{% endblock %}
   </body>
 </html>
