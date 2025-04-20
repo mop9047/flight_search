@@ -21,8 +21,13 @@ def search_staff():
     #       flight_no AS Flight FROM Flight WHERE 1=1"
     query = "Select Airline_Name AS Airline,\
          flight_no AS Flight, \
-            departure_date_and_time AS xDeparture_Date, \
-         departure_airport_id AS Departure FROM Flight WHERE 1=1"
+            departure_date_and_time AS Departure_Date, \
+         departure_airport_id AS Departure, \
+             arrival_airport_id AS Arrival, \
+                arrival_date_and_time AS Arrival_Date, \
+                     status, base_price, \
+                         Airplane_airline_name AS AA_name, \
+                             Airplane_id FROM Flight WHERE 1=1"
 	
     params = []
     filters = ["No Filters"]

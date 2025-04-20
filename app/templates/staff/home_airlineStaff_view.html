@@ -33,20 +33,9 @@ endblock %} {% block content %} {% if error!=True%}
   {% endif %}{% endif %}
 </form>
 {% if flights%} {% if filters%}
-<div class="filter_container" style="display: flex">
+<div class="filter_container">
   {%for filter in filters%}
-  <small
-    class="filter_box"
-    style="
-      background-color: darkgray;
-      border-radius: 5px;
-      padding: 2px;
-      size: 10pt;
-      margin: 2px;
-    "
-  >
-    {{filter}}
-  </small>
+  <small class="filter_box"> {{filter}} </small>
   {%endfor%}
 </div>
 <a href="/editFiltersStaff">Edit Search Filters 🔎</a>
@@ -54,17 +43,31 @@ endblock %} {% block content %} {% if error!=True%}
 <table>
   <thead>
     <tr>
-      {% for col in flights[0].keys() %}
-      <th>{{ col }}</th>
-      {% endfor %}
+      <th>Airline</th>
+      <th>Flight</th>
+      <th>Departure Date</th>
+      <th>Departure</th>
+      <th>Arrival</th>
+      <th>Arrival Date</th>
+      <th>Status</th>
+      <th>Base Price</th>
+      <th>AA Name</th>
+      <th>Plane ID</th>
     </tr>
   </thead>
   <tbody>
     {% for row in flights %}
     <tr>
-      {% for value in row.values() %}
-      <td>{{ value }}</td>
-      {% endfor %}
+      <td>{{row ['Airline']}}</td>
+      <td>{{row ['Flight']}}</td>
+      <td>{{row ['Departure_Date']}}</td>
+      <td>{{row ['Departure']}}</td>
+      <td>{{row ['Arrival']}}</td>
+      <td>{{row ['Arrival_Date']}}</td>
+      <td>{{row ['status']}}</td>
+      <td>{{row ['base_price']}}</td>
+      <td>{{row ['AA_name']}}</td>
+      <td>{{row ['Airplane_id']}}</td>
     </tr>
     {% endfor %}
   </tbody>
