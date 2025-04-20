@@ -17,7 +17,12 @@ def search_staff():
 	#cursor used to send queries
     cursor = current_app.config['db'].cursor()
 	#executes query
-    query = "Select * FROM Flight WHERE 1=1"
+    # query = "Select Airline_Name AS Airline, \
+    #       flight_no AS Flight FROM Flight WHERE 1=1"
+    query = "Select Airline_Name AS Airline,\
+         flight_no AS Flight, \
+            departure_date_and_time AS xDeparture_Date, \
+         departure_airport_id AS Departure FROM Flight WHERE 1=1"
 	
     params = []
     filters = ["No Filters"]
