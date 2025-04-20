@@ -19,4 +19,6 @@ def home():
 def logout():
     session.pop('username')
     session.pop('usertype')
+    if 'data' in session:
+        session.pop('data')
     return redirect('/')
