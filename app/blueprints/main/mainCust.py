@@ -1,8 +1,5 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
-<<<<<<< HEAD
-=======
 from datetime import datetime, timedelta
->>>>>>> search_func_And_cust_func
 
 main = Blueprint('mainCust', __name__)
 
@@ -12,30 +9,14 @@ def home_cust():
 
     cursor = current_app.config['db'].cursor();
     query = 'SELECT name FROM Customer WHERE email = %s'
-<<<<<<< HEAD
-    cursor.execute(query, (username))
-=======
-    cursor.execute(query, (username,))  # Fixed: added comma to make it a tuple
->>>>>>> search_func_And_cust_func
+    cursor.execute(query, username)  
     data = cursor.fetchone() 
     
     cursor.close()
     return render_template('customer/home_customer.html', username=data['name'], posts=data)
 
-@main.route('/home_customer_flight', methods = ['GET','POST'])
-def home_cust_flight():
-<<<<<<< HEAD
-    return render_template('customer/home_customer_flight.html',username=session['username'])
 
-@main.route('/home_customer_search', methods = ['GET','POST'])
-def home_cust_search():
-    return render_template('customer/home_customer_search.html',username=session['username'])
 
-@main.route('/home_customer_rate', methods = ['GET','POST'])
-def home_cust_rate():
-    return render_template('customer/home_customer_rate.html',username=session['username'])
-=======
-    return render_template('customer/home_customer_flight.html', username=session['username'])
 
 @main.route('/home_customer_search', methods = ['GET','POST'])
 def home_cust_search():
@@ -119,7 +100,7 @@ def customer_search_flights():
 def home_cust_rate():
     return render_template('customer/home_customer_rate.html', username=session['username'])
 
-@main.route('/book_flight', methods = ['POST'])
+@main.route('/book_flight', methods=['POST'])
 def book_flight():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -128,17 +109,13 @@ def book_flight():
     airline = request.form.get('airline')
     flight_no = request.form.get('flight_no')
     departure_time = request.form.get('departure_time')
-    customer_email = session['username']
-    
-    # Generate a ticket ID (you might want to use a more sophisticated method)
-    import uuid
-    ticket_id = str(uuid.uuid4())[:20]
     
     # Get the base price from the flight
     cursor = current_app.config['db'].cursor()
     query = 'SELECT base_price FROM Flight WHERE Airline_Name = %s AND flight_no = %s AND departure_date_and_time = %s'
     cursor.execute(query, (airline, flight_no, departure_time))
     flight_data = cursor.fetchone()
+    cursor.close()
     
     if not flight_data:
         # Flight not found
@@ -146,20 +123,76 @@ def book_flight():
     
     base_price = flight_data['base_price']
     
-    #To do: Calculate the sold price based on other factors 
+    # To do: Calculate the sold price based on other factors 
     sold_price = base_price
     
-    # Insert ticket record
+    # Store flight booking details in session for payment page
+    session['booking'] = {
+        'airline': airline,
+        'flight_no': flight_no,
+        'departure_time': departure_time,
+        'sold_price': sold_price
+    }
+    
+    # Redirect to payment page
+    return redirect(url_for('mainCust.payment_page'))
+
+@main.route('/payment_page', methods=['GET'])
+def payment_page():
+    if 'username' not in session or 'booking' not in session:
+        return redirect(url_for('auth.login'))
+    
+    booking = session['booking']
+    return render_template('customer/payment_page.html', 
+                          username=session['username'],
+                          booking=booking)
+
+@main.route('/process_payment', methods=['POST'])
+def process_payment():
+    if 'username' not in session or 'booking' not in session:
+        return redirect(url_for('auth.login'))
+    
+    # Get booking details from session
+    booking = session['booking']
+    airline = booking['airline']
+    flight_no = booking['flight_no']
+    departure_time = booking['departure_time']
+    sold_price = booking['sold_price']
+    customer_email = session['username']
+    
+    # Get payment details from form
+    card_type = request.form.get('card_type')
+    card_num = request.form.get('card_num')
+    name_on_card = request.form.get('name_on_card')
+    card_expiry_date = request.form.get('card_expiry_date')
+    
+    # Validate payment details
+    if not card_type or not card_num or not name_on_card or not card_expiry_date:
+        return render_template('customer/payment_page.html', 
+                             username=session['username'],
+                             booking=booking,
+                             error="All payment fields are required")
+    
+    # Generate a ticket ID
+    import uuid
+    ticket_id = str(uuid.uuid4())[:20]
+    
+    # Insert ticket record with payment details
+    cursor = current_app.config['db'].cursor()
     try:
         # Start a transaction
         current_app.config['db'].begin()
         
-        # Insert into Ticket table
+        # Insert into Ticket table with payment details
         ticket_query = '''
-        INSERT INTO Ticket (ticket_id, sold_price, Airline_name, flight_no, departure_date_and_time)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO Ticket (ticket_id, sold_price, card_type, card_num, name_on_card, card_expiry_date, 
+                          Airline_name, flight_no, departure_date_and_time)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         '''
-        cursor.execute(ticket_query, (ticket_id, sold_price, airline, flight_no, departure_time))
+        cursor.execute(ticket_query, (
+            ticket_id, sold_price, card_type, card_num, name_on_card, card_expiry_date,
+            airline, flight_no, departure_time
+        ))
         
         # Insert into Purchases table
         purchase_query = '''
@@ -172,14 +205,104 @@ def book_flight():
         # Commit the transaction
         current_app.config['db'].commit()
         
-        return redirect(url_for('mainCust.home_cust_flight'))
+        # Clear booking data from session
+        session.pop('booking', None)
+        
+        # Redirect to booking confirmation page
+        return redirect(url_for('mainCust.booking_confirmation', ticket_id=ticket_id))
         
     except Exception as e:
         # If there's an error, rollback the transaction
         current_app.config['db'].rollback()
-        print(f"Error booking flight: {e}")
-        return redirect(url_for('mainCust.home_cust_search'))
+        print(f"Error processing payment: {e}")
+        return render_template('customer/payment_page.html', 
+                             username=session['username'],
+                             booking=booking,
+                             error=f"Payment processing error: {e}")
     
     finally:
         cursor.close()
->>>>>>> search_func_And_cust_func
+
+@main.route('/booking_confirmation/<ticket_id>', methods=['GET'])
+def booking_confirmation(ticket_id):
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    # Get ticket details from database
+    cursor = current_app.config['db'].cursor()
+    query = '''
+    SELECT t.ticket_id, t.sold_price, t.Airline_name, t.flight_no, t.departure_date_and_time,
+           f.arrival_date_and_time, a1.name as departure_airport, a2.name as arrival_airport
+    FROM Ticket t
+    JOIN Flight f ON t.Airline_name = f.Airline_Name AND t.flight_no = f.flight_no 
+                  AND t.departure_date_and_time = f.departure_date_and_time
+    JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+    JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+    WHERE t.ticket_id = %s
+    '''
+    
+    cursor.execute(query, (ticket_id,))
+    ticket_data = cursor.fetchone()
+    cursor.close()
+    
+    if not ticket_data:
+        return redirect(url_for('mainCust.home_cust_flight'))
+    
+    return render_template('customer/booking_confirmation.html', 
+                          username=session['username'],
+                          ticket=ticket_data)
+@main.route('/home_customer_flight', methods = ['GET','POST'])
+def home_cust_flight():
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    customer_email = session['username']
+    
+    # Get customer name
+    cursor = current_app.config['db'].cursor()
+    name_query = 'SELECT name FROM Customer WHERE email = %s'
+    cursor.execute(name_query, (customer_email,))
+    customer_data = cursor.fetchone()
+    
+    # Get all flights booked by this customer
+    flights_query = '''
+    SELECT t.ticket_id, t.sold_price, t.Airline_name, t.flight_no, 
+           t.departure_date_and_time, f.arrival_date_and_time, 
+           a1.name as departure_airport, a2.name as arrival_airport,
+           a1.city as departure_city, a2.city as arrival_city,
+           p.date_and_time as booking_date, f.status
+    FROM Purchases p
+    JOIN Ticket t ON p.ticket_id = t.ticket_id
+    JOIN Flight f ON t.Airline_name = f.Airline_Name 
+                 AND t.flight_no = f.flight_no 
+                 AND t.departure_date_and_time = f.departure_date_and_time
+    JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+    JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+    WHERE p.email = %s
+    ORDER BY t.departure_date_and_time
+    '''
+    
+    cursor.execute(flights_query, (customer_email,))
+    flights = cursor.fetchall()
+    
+    # Separate upcoming and past flights
+    current_time = datetime.now()
+    upcoming_flights = []
+    past_flights = []
+    
+    for flight in flights:
+        departure_time = flight['departure_date_and_time']
+        if isinstance(departure_time, str):
+            departure_time = datetime.strptime(departure_time, '%Y-%m-%d %H:%M:%S')
+        
+        if departure_time > current_time:
+            upcoming_flights.append(flight)
+        else:
+            past_flights.append(flight)
+    
+    cursor.close()
+    
+    return render_template('customer/home_customer_flight.html', 
+                          username=customer_data['name'] if customer_data else customer_email,
+                          upcoming_flights=upcoming_flights,
+                          past_flights=past_flights)

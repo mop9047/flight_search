@@ -185,8 +185,6 @@ a {
 a:hover {
   text-decoration: underline;
 }
-<<<<<<< HEAD
-=======
 /* Flight search results styling */
 .search-results-container {
   width: 90%;
@@ -342,4 +340,3 @@ table tbody tr:hover {
   border-left: 4px solid #0277bd;
   text-align: center;
 }
->>>>>>> search_func_And_cust_func

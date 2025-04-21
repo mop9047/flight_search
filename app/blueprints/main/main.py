@@ -19,9 +19,6 @@ def home():
 def logout():
     session.pop('username')
     session.pop('usertype')
-<<<<<<< HEAD
-    return redirect('/')
-=======
     return redirect('/')
 
 @main.route('/search_flights', methods=['GET', 'POST'])
@@ -79,4 +76,3 @@ def search_flights():
                               is_round_trip=is_round_trip)
     
     return render_template('search_flights.html')
->>>>>>> search_func_And_cust_func
