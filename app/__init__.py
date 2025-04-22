@@ -27,12 +27,15 @@ def create_app():
     from .blueprints.main.mainCust import main as mainCust_blueprint
     from .blueprints.main.mainStaff import main as mainStaff_blueprint
 
+    from .blueprints.search.searchStaff import search as searchStaff_blueprint
+
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(authStaff_blueprint)
     app.register_blueprint(authCust_blueprint)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(mainCust_blueprint)
     app.register_blueprint(mainStaff_blueprint)
+    app.register_blueprint(searchStaff_blueprint)
 
     return app
 
