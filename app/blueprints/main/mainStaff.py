@@ -17,6 +17,22 @@ def home_staff():
     cursor.close()
     return render_template('staff/home_airlineStaff.html', username=name, posts=data1)
 
+@main.route('/home_airlineStaff_view', methods = ['GET','POST'])
+def home_staff_view():
+    if 'username' in session:
+        username = session['username']
+        if 'data' in session:
+            data = session['data']
+            if len(data) > 0:
+                filters = session['search_filters']
+                return render_template('staff/home_airlineStaff_view.html',username=username, flights=data, filters=filters)
+            else:
+                return render_template('staff/home_airlineStaff_view.html',username=username, error='No Flights Found!')
+        else:
+            return render_template('staff/home_airlineStaff_view.html',username=username)
+    else:
+        return render_template('staff/home_airlineStaff_view.html',error='No Session')
+
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
 def home_staff_airport():
     return render_template('staff/home_airlineStaff_airport.html',username=session['username'])
@@ -40,7 +56,3 @@ def home_staff_rating():
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
 def home_staff_report():
     return render_template('staff/home_airlineStaff_report.html',username=session['username'])
-
-@main.route('/home_airlineStaff_view', methods = ['GET','POST'])
-def home_staff_view():
-    return render_template('staff/home_airlineStaff_view.html',username=session['username'])
