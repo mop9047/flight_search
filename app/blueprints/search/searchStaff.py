@@ -13,12 +13,7 @@ def search_staff():
     destination = request.form['destination']
     status = request.form['status']
 	
-
-	#cursor used to send queries
     cursor = current_app.config['db'].cursor()
-	#executes query
-    # query = "Select Airline_Name AS Airline, \
-    #       flight_no AS Flight FROM Flight WHERE 1=1"
     query = "Select Airline_Name AS Airline,\
          flight_no AS Flight, \
             departure_date_and_time AS Departure_Date, \
@@ -84,3 +79,31 @@ def search_staff():
 def edit_filter_staff():
     session.pop('data')
     return redirect(url_for('mainStaff.home_staff_view'))
+
+@search.route('/createFlightsStaff', methods = ['GET','POST'])
+def create_flights_staff():
+    username = session['username']
+    airline = session['airline']
+
+    flight_no = request.form['flight_no']
+    dep_date = request.form['dep_date']
+    dep_time = request.form['dep_time']
+    dep_airport = request.form['dep_airport']
+    arr_date = request.form['arr_date']
+    arr_time = request.form['arr_time']
+    arr_airport = request.form['arr_airport']
+    status = request.form['status']
+    base_price = request.form['base_price']
+    # AA_name = request.form['AA_name']
+    AA_id = request.form['AA_id']
+
+    dep_date_time = f"{dep_date} {dep_time}:00"
+    arr_date_time = f"{arr_date} {arr_time}:00"
+    
+    print('TIMEF',arr_time)
+    cursor = current_app.config['db'].cursor()
+    query = "INSERT INTO FLIGHT VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    cursor.execute(query, (airline, flight_no,dep_date_time,dep_airport,arr_airport, arr_date_time ,status,base_price,airline,AA_id))
+    current_app.config['db'].commit()
+    cursor.close()
+    return redirect(url_for('mainStaff.home_staff_create'))

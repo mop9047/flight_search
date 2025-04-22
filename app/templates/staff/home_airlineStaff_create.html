@@ -1,6 +1,86 @@
 {% extends "staff/home_airlineStaff.html" %} {% block title %}Create New
 Flights{% endblock %} {% block content %}
 
-<h1>Create New Flight</h1>
+<form action="/createFlightsStaff" method="POST">
+  <h2>Create New Flight</h2>
+  <p>Use the following fields to filter your flight search</p>
+  <br />
 
+  <label for="Flight No.">Flight No:</label>
+  <input type="text" name="flight_no" placeholder="Flight No." required />
+
+  <label for="dep_date">Departure Date:</label>
+  <input type="date" name="dep_date" required />
+
+  <label for="dep_time">Departure Time:</label>
+  <input type="time" name="dep_time" required />
+
+  <label for="dep_airport">Departure Airport ID</label>
+  <input
+    type="text"
+    name="dep_airport"
+    placeholder="Departure Airport ID"
+    required
+  />
+
+  <label for="arr_date">Arrival Date:</label>
+  <input type="date" name="arr_date" required />
+
+  <label for="arr_time">Arrival Time:</label>
+  <input type="time" name="arr_time" required />
+
+  <label for="arr_airport">Arrival Airport ID</label>
+  <input
+    type="text"
+    name="arr_airport"
+    placeholder="Arrival Airport ID"
+    required
+  />
+
+  <label for="status">Select Status:</label>
+  <select name="status" id="status" required>
+    <option value="">-- Choose an option --</option>
+    <option value="delayed">Delayed</option>
+    <option value="on-time">On Time</option>
+  </select>
+
+  <label for="base_price">Base Price</label>
+  <input type="text" name="base_price" placeholder="Base Price" required />
+
+  <!-- removed because of session already possible -->
+  <!-- <label for="AA_name">Airplane Airline Name</label>
+  <input type="text" name="AA_name" placeholder="Airplane Airline Name" /> -->
+
+  <label for="AA_id">Airplane Airline ID</label>
+  <input type="text" name="AA_id" placeholder="Airplane Airline ID" required />
+
+  <button type="submit">Create Flight</button>
+  {% if error %}
+  <p class="error"><strong>Error:</strong> {{error}}</p>
+  {% endif %}
+</form>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const start = document.getElementById("start_date");
+    const end = document.getElementById("end_date");
+
+    start.addEventListener("change", () => {
+      const startDate = new Date(start.value);
+      if (isNaN(startDate)) return;
+
+      // Add one day
+      const nextDay = new Date(startDate);
+      nextDay.setDate(startDate.getDate() + 1);
+
+      // Format to YYYY-MM-DD
+      const year = nextDay.getFullYear();
+      const month = String(nextDay.getMonth() + 1).padStart(2, "0");
+      const day = String(nextDay.getDate()).padStart(2, "0");
+
+      end.min = `${year}-${month}-${day}`;
+      end.value = ""; // optional: reset selected value if it becomes invalid
+    });
+  });
+</script>
 {% endblock %}
