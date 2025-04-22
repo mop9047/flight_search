@@ -55,4 +55,6 @@ def home_staff_rating():
 
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
 def home_staff_report():
+
     return render_template('staff/home_airlineStaff_report.html',username=session['username'])
+

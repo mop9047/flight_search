@@ -33,31 +33,39 @@ def loginAuthStaff():
 #Authenticates the register of Staff
 @auth.route('/registerAuthAirlineStaff', methods=['GET', 'POST'])
 def registerAuthStaff():
-	#grabs information from the forms
-	username = request.form['username']
-	password = request.form['password']
-	f_name = request.form['f_name']
-	l_name = request.form['l_name']
-	date_of_birth = request.form['date_of_birth']
-	airline_name = request.form['airline_name']
+    #grabs information from the forms
+    username = request.form['username']
+    password = request.form['password']
+    f_name = request.form['f_name']
+    l_name = request.form['l_name']
+    date_of_birth = request.form['date_of_birth']
+    airline_name = request.form['airline_name']
 
+    # Format the date to YYYY-MM-DD if it's in MM-DD-YYYY format
+    try:
+        if '-' in date_of_birth:
+            parts = date_of_birth.split('-')
+            if len(parts[0]) == 2:  # If first part is MM
+                date_of_birth = f"{parts[2]}-{parts[0]}-{parts[1]}"
+    except:
+        pass
 
-	#cursor used to send queries
-	cursor = current_app.config['db'].cursor()
-	#executes query
-	query = "SELECT * FROM Airline_Staff WHERE username = %s"
-	cursor.execute(query, (username))
-	#stores the results in a variable
-	data = cursor.fetchone()
-	#use fetchall() if you are expecting more than 1 data row
-	error = None
-	if(data):
-		#If the previous query returns data, then user exists
-		error = "This user already exists"
-		return render_template('register.html', error = error)
-	else:
-		ins = 'INSERT INTO Airline_Staff VALUES(%s, md5(%s),%s,%s,%s,%s)'  #added md5 to hash password
-		cursor.execute(ins, (username, password, f_name,l_name,date_of_birth,airline_name))
-		current_app.config['db'].commit()
-		cursor.close()
-		return render_template('index.html')
+    #cursor used to send queries
+    cursor = current_app.config['db'].cursor()
+    #executes query
+    query = "SELECT * FROM Airline_Staff WHERE username = %s"
+    cursor.execute(query, (username,))  # Add comma to make it a tuple
+    #stores the results in a variable
+    data = cursor.fetchone()
+    #use fetchall() if you are expecting more than 1 data row
+    error = None
+    if(data):
+        #If the previous query returns data, then user exists
+        error = "This user already exists"
+        return render_template('register.html', error = error)
+    else:
+        ins = 'INSERT INTO Airline_Staff VALUES(%s, md5(%s),%s,%s,%s,%s)'  #added md5 to hash password
+        cursor.execute(ins, (username, password, f_name, l_name, date_of_birth, airline_name))
+        current_app.config['db'].commit()
+        cursor.close()
+        return render_template('index.html')

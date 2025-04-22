@@ -17,8 +17,67 @@ def home():
 
 @main.route('/logout')
 def logout():
-    session.pop('username')
-    session.pop('usertype')
-    if 'data' in session:
+   if 'data' in session:
         session.pop('data')
+    
+    session.pop('username')
+
     return redirect('/')
+
+@main.route('/search_flights', methods=['GET', 'POST'])
+def search_flights():
+    if request.method == 'POST':
+        # Get search parameters
+        source = request.form['source']
+        destination = request.form['destination']
+        departure_date = request.form['departure_date']
+        is_round_trip = 'return_date' in request.form
+        return_date = request.form.get('return_date', None)
+        
+        # Connect to the database
+        cursor = current_app.config['db'].cursor()
+        
+        # Search query for departure flights
+        query = '''
+        SELECT f.Airline_Name, f.flight_no, f.departure_date_and_time, f.arrival_date_and_time, 
+               a1.name as departure_airport, a2.name as arrival_airport, 
+               a1.city as departure_city, a2.city as arrival_city, f.base_price, f.status
+        FROM Flight f 
+        JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+        JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+        WHERE (a1.city = %s OR a1.name = %s) 
+        AND (a2.city = %s OR a2.name = %s)
+        AND DATE(f.departure_date_and_time) = %s
+        '''
+        
+        cursor.execute(query, (source, source, destination, destination, departure_date))
+        departure_flights = cursor.fetchall()
+        
+        # Handle round trip search
+        return_flights = []
+        if is_round_trip and return_date:
+            query = '''
+            SELECT f.Airline_Name, f.flight_no, f.departure_date_and_time, f.arrival_date_and_time, 
+                   a1.name as departure_airport, a2.name as arrival_airport, 
+                   a1.city as departure_city, a2.city as arrival_city, f.base_price, f.status
+            FROM Flight f 
+            JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+            JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+            WHERE (a1.city = %s OR a1.name = %s) 
+            AND (a2.city = %s OR a2.name = %s)
+            AND DATE(f.departure_date_and_time) = %s
+            '''
+            
+            cursor.execute(query, (destination, destination, source, source, return_date))
+            return_flights = cursor.fetchall()
+            
+        cursor.close()
+        
+        return render_template('search_results.html', 
+                              departure_flights=departure_flights, 
+                              return_flights=return_flights, 
+                              is_round_trip=is_round_trip)
+    
+    return render_template('search_flights.html')
+
+    
