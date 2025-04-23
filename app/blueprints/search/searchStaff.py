@@ -120,4 +120,5 @@ def change_flight_staff():
             cursor.execute(query,(new_status,keys[1],keys[2]))
             current_app.config['db'].commit()
             cursor.close()
+    session['success'] = True
     return redirect(url_for('mainStaff.home_staff_change'))

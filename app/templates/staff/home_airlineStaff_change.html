@@ -43,4 +43,9 @@ Status{% endblock %} {% block content %}
   </table>
   <button type="submit">Change Status</button>
 </form>
-{% endblock %}
+<br />
+{% if success%}
+<div class="change-success-message">
+  <p>Flight Status Changed Successfully ✅</p>
+</div>
+{%endif%} {% endblock %}
