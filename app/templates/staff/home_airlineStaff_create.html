@@ -10,10 +10,10 @@ Flights{% endblock %} {% block content %}
   <input type="text" name="flight_no" placeholder="Flight No." required />
 
   <label for="dep_date">Departure Date:</label>
-  <input type="date" name="dep_date" required />
+  <input type="date" name="dep_date" id="dep_date" required />
 
   <label for="dep_time">Departure Time:</label>
-  <input type="time" name="dep_time" required />
+  <input type="time" name="dep_time" id="dep_time" required />
 
   <label for="dep_airport">Departure Airport ID</label>
   <input
@@ -24,10 +24,10 @@ Flights{% endblock %} {% block content %}
   />
 
   <label for="arr_date">Arrival Date:</label>
-  <input type="date" name="arr_date" required />
+  <input type="date" name="arr_date" id="arr_date" required />
 
   <label for="arr_time">Arrival Time:</label>
-  <input type="time" name="arr_time" required />
+  <input type="time" name="arr_time" id="arr_time" required />
 
   <label for="arr_airport">Arrival Airport ID</label>
   <input
@@ -62,24 +62,83 @@ Flights{% endblock %} {% block content %}
 {% endblock %} {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const start = document.getElementById("start_date");
-    const end = document.getElementById("end_date");
+    const startDateInput = document.getElementById("dep_date");
+    const startTimeInput = document.getElementById("dep_time");
+    const endDateInput = document.getElementById("arr_date");
+    const endTimeInput = document.getElementById("arr_time");
 
-    start.addEventListener("change", () => {
-      const startDate = new Date(start.value);
-      if (isNaN(startDate)) return;
+    // Function to compare dates and times
+    function isArrivalValid() {
+      const depDateStr = startDateInput.value;
+      const arrDateStr = endDateInput.value;
+      const depTime = startTimeInput.value;
+      const arrTime = endTimeInput.value;
 
-      // Add one day
-      const nextDay = new Date(startDate);
-      nextDay.setDate(startDate.getDate() + 1);
+      if (!depDateStr || !arrDateStr || !depTime || !arrTime) return true;
 
-      // Format to YYYY-MM-DD
+      if (depDateStr === arrDateStr) {
+        // Same day: check time
+        const [depH, depM] = depTime.split(":").map(Number);
+        const [arrH, arrM] = arrTime.split(":").map(Number);
+
+        const depMinutes = depH * 60 + depM;
+        const arrMinutes = arrH * 60 + arrM;
+
+        return arrMinutes > depMinutes;
+      }
+
+      // Different dates: skip time comparison
+      return true;
+    }
+
+    // Update arrival date and time validity when departure date changes
+    startDateInput.addEventListener("change", () => {
+      const depDate = new Date(startDateInput.value);
+      if (isNaN(depDate)) return;
+
+      // Add one day to the departure date
+      const nextDay = new Date(depDate);
+      nextDay.setDate(depDate.getDate() + 1);
+
+      // Update arrival date min value
       const year = nextDay.getFullYear();
       const month = String(nextDay.getMonth() + 1).padStart(2, "0");
       const day = String(nextDay.getDate()).padStart(2, "0");
+      endDateInput.min = `${year}-${month}-${day}`;
+      endDateInput.value = ""; // Reset selected value if it becomes invalid
+    });
 
-      end.min = `${year}-${month}-${day}`;
-      end.value = ""; // optional: reset selected value if it becomes invalid
+    // Update the arrival time min value when departure time changes
+    startTimeInput.addEventListener("change", () => {
+      if (!startDateInput.value || !startTimeInput.value || !endDateInput.value)
+        return;
+
+      // Only apply min time if same day
+      if (startDateInput.value === endDateInput.value) {
+        const depTime = startTimeInput.value.split(":");
+        const depHour = parseInt(depTime[0], 10);
+        const depMinute = parseInt(depTime[1], 10);
+
+        const depDateTime = new Date();
+        depDateTime.setHours(depHour, depMinute + 1);
+
+        const minHour = String(depDateTime.getHours()).padStart(2, "0");
+        const minMinute = String(depDateTime.getMinutes()).padStart(2, "0");
+
+        endTimeInput.min = `${minHour}:${minMinute}`;
+      } else {
+        endTimeInput.min = ""; // allow any time
+      }
+    });
+
+    // Check if arrival time is valid before submitting the form
+    document.querySelector("form").addEventListener("submit", function (e) {
+      if (!isArrivalValid()) {
+        e.preventDefault(); // Prevent form submission
+        alert(
+          "Arrival time must be after departure time. Please adjust accordingly"
+        );
+      }
     });
   });
 </script>
