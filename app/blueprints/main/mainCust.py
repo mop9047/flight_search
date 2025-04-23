@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, session, redirect, url_for, current_app, flash
 from datetime import datetime, timedelta
 
 main = Blueprint('mainCust', __name__)
@@ -98,8 +98,152 @@ def customer_search_flights():
 
 @main.route('/home_customer_rate', methods = ['GET','POST'])
 def home_cust_rate():
-    return render_template('customer/home_customer_rate.html', username=session['username'])
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    customer_email = session['username']
+    
+    # Check for messages in session
+    error = None
+    success = None
+    
+    if 'rating_error' in session:
+        error = session.pop('rating_error')  # Get and remove from session
+    
+    if 'rating_success' in session:
+        success = session.pop('rating_success')  # Get and remove from session
+    
+    # Get past flights that the customer has taken
+    cursor = current_app.config['db'].cursor()
+    
+    # Query for past flights that can be rated
+    past_flights_query = '''
+    SELECT DISTINCT f.Airline_Name, f.flight_no, f.departure_date_and_time, f.arrival_date_and_time, 
+           a1.name as departure_airport, a2.name as arrival_airport,
+           a1.city as departure_city, a2.city as arrival_city, f.status
+    FROM Purchases p
+    JOIN Ticket t ON p.ticket_id = t.ticket_id
+    JOIN Flight f ON t.Airline_name = f.Airline_Name 
+                 AND t.flight_no = f.flight_no 
+                 AND t.departure_date_and_time = f.departure_date_and_time
+    JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+    JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+    LEFT JOIN Review r ON p.email = r.email 
+                      AND f.Airline_Name = r.Airline_Name 
+                      AND f.flight_no = r.flight_no 
+                      AND f.departure_date_and_time = r.departure_date_and_time
+    WHERE p.email = %s
+    AND f.arrival_date_and_time < NOW()  -- Ensure flight has already arrived
+    AND r.email IS NULL  -- Ensure flight hasn't been rated already
+    ORDER BY f.departure_date_and_time DESC
+    '''
+    
+    cursor.execute(past_flights_query, (customer_email,))
+    past_flights = cursor.fetchall()
+    cursor.close()
+    
+    # Get customer name for display
+    customer_name = session['username']
+    cursor = current_app.config['db'].cursor()
+    name_query = 'SELECT name FROM Customer WHERE email = %s'
+    cursor.execute(name_query, (customer_email,))
+    customer_data = cursor.fetchone()
+    if customer_data:
+        customer_name = customer_data['name']
+    cursor.close()
+    
+    return render_template('customer/home_customer_rate.html', 
+                          username=customer_name,
+                          past_flights=past_flights,
+                          error=error,
+                          success=success)
 
+@main.route('/submit_rating', methods=['POST'])
+def submit_rating():
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    customer_email = session['username']
+    
+    # Get form data
+    airline_name = request.form.get('airline_name')
+    flight_no = request.form.get('flight_no')
+    departure_time = request.form.get('departure_time')
+    rating = request.form.get('rate')
+    comment = request.form.get('comment', '')
+    
+    # Debug print to verify we're getting the data
+    current_app.logger.debug(f"Rating submission - Airline: {airline_name}, Flight: {flight_no}, Rating: {rating}")
+    
+    # Validate input
+    if not airline_name or not flight_no or not departure_time or not rating:
+        # Store error message in session to display after redirect
+        session['rating_error'] = "All rating fields are required"
+        return redirect(url_for('mainCust.home_cust_rate'))
+    
+    try:
+        # Insert rating into the database
+        cursor = current_app.config['db'].cursor()
+        
+        # Check if this flight exists and customer has purchased a ticket for it
+        check_query = '''
+        SELECT COUNT(*) as count 
+        FROM Purchases p
+        JOIN Ticket t ON p.ticket_id = t.ticket_id
+        JOIN Flight f ON t.Airline_name = f.Airline_Name 
+                     AND t.flight_no = f.flight_no 
+                     AND t.departure_date_and_time = f.departure_date_and_time
+        WHERE p.email = %s
+        AND f.Airline_Name = %s
+        AND f.flight_no = %s
+        AND f.departure_date_and_time = %s
+        '''
+        
+        cursor.execute(check_query, (customer_email, airline_name, flight_no, departure_time))
+        result = cursor.fetchone()
+        
+        if not result or result['count'] == 0:
+            cursor.close()
+            session['rating_error'] = "You can only rate flights you have taken"
+            return redirect(url_for('mainCust.home_cust_rate'))
+        
+        # Check if user has already rated this flight
+        check_review_query = '''
+        SELECT COUNT(*) as count 
+        FROM Review
+        WHERE email = %s
+        AND Airline_Name = %s
+        AND flight_no = %s
+        AND departure_date_and_time = %s
+        '''
+        
+        cursor.execute(check_review_query, (customer_email, airline_name, flight_no, departure_time))
+        result = cursor.fetchone()
+        
+        if result and result['count'] > 0:
+            cursor.close()
+            session['rating_error'] = "You have already rated this flight"
+            return redirect(url_for('mainCust.home_cust_rate'))
+        
+        # Insert new review
+        insert_query = '''
+        INSERT INTO Review (email, Airline_Name, flight_no, departure_date_and_time, rate, comment)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        
+        cursor.execute(insert_query, (customer_email, airline_name, flight_no, departure_time, rating, comment))
+        current_app.config['db'].commit()
+        
+        cursor.close()
+        
+        # Store success message in session to display after redirect
+        session['rating_success'] = "Thank you for your rating!"
+        return redirect(url_for('mainCust.home_cust_rate'))
+    
+    except Exception as e:
+        current_app.logger.error(f"Error submitting rating: {e}")
+        session['rating_error'] = f"Error submitting your rating: {str(e)}"
+        return redirect(url_for('mainCust.home_cust_rate'))
 @main.route('/book_flight', methods=['POST'])
 def book_flight():
     if 'username' not in session:
@@ -112,7 +256,7 @@ def book_flight():
     
     # Get the base price from the flight
     cursor = current_app.config['db'].cursor()
-    query = 'SELECT base_price FROM Flight WHERE Airline_Name = %s AND flight_no = %s AND departure_date_and_time = %s'
+    query = 'SELECT base_price FROM Flight WHERE Airline_Name = %s AND flight_no = %s AND departure_date_and_time = %s AND arrival_date_and_time > NOW()'
     cursor.execute(query, (airline, flight_no, departure_time))
     flight_data = cursor.fetchone()
     cursor.close()
@@ -306,3 +450,77 @@ def home_cust_flight():
                           username=customer_data['name'] if customer_data else customer_email,
                           upcoming_flights=upcoming_flights,
                           past_flights=past_flights)
+
+@main.route('/cancel_flight', methods=['POST'])
+def cancel_flight():
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    ticket_id = request.form.get('ticket_id')
+    if not ticket_id:
+        flash("Invalid ticket information", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
+    
+    customer_email = session['username']
+    
+    # Get flight details
+    cursor = current_app.config['db'].cursor()
+    flight_query = '''
+    SELECT t.ticket_id, t.departure_date_and_time 
+    FROM Ticket t
+    JOIN Purchases p ON t.ticket_id = p.ticket_id
+    WHERE t.ticket_id = %s AND p.email = %s
+    '''
+    
+    cursor.execute(flight_query, (ticket_id, customer_email))
+    flight_data = cursor.fetchone()
+    
+    if not flight_data:
+        cursor.close()
+        flash("Ticket not found or not owned by you", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
+    
+    # Check if flight is within 24 hours
+    departure_time = flight_data['departure_date_and_time']
+    if isinstance(departure_time, str):
+        departure_time = datetime.strptime(departure_time, '%Y-%m-%d %H:%M:%S')
+    
+    current_time = datetime.now()
+    time_until_departure = departure_time - current_time
+    
+    # Check if flight is within 24 hours but still process with different message
+    within_24_hours = time_until_departure.total_seconds() <= 24 * 3600
+    
+    try:
+       
+        
+        if within_24_hours:
+            flash("Flight cannot be cancelled since it is within 24 hours of departure ", "warning")
+
+        else:
+            # Start a transaction
+            current_app.config['db'].begin()
+            
+            # Delete from Purchases table
+            delete_purchase_query = 'DELETE FROM Purchases WHERE ticket_id = %s AND email = %s'
+            cursor.execute(delete_purchase_query, (ticket_id, customer_email))
+            
+            # Delete from Ticket table
+            delete_ticket_query = 'DELETE FROM Ticket WHERE ticket_id = %s'
+            cursor.execute(delete_ticket_query, (ticket_id,))
+            
+            # Commit the transaction
+            current_app.config['db'].commit()
+            
+            cursor.close()
+            flash("Flight cancelled successfully. Your payment will be refunded within 7-10 business days.", "success")
+        
+        return redirect(url_for('mainCust.home_cust_flight'))
+        
+    except Exception as e:
+        # If there's an error, rollback the transaction
+        current_app.config['db'].rollback()
+        cursor.close()
+        print(f"Error cancelling flight: {e}")
+        flash(f"Error cancelling flight: {e}", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
