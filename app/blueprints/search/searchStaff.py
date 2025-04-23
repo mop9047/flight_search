@@ -107,3 +107,18 @@ def create_flights_staff():
     current_app.config['db'].commit()
     cursor.close()
     return redirect(url_for('mainStaff.home_staff_create'))
+
+@search.route('/changeFlightStatus', methods = ['GET','POST'])
+def change_flight_staff():
+    for key in request.form:
+        if key.startswith('status_'):
+            new_status = request.form[key] 
+            keys = key.split('_')
+            print(key, new_status)
+            cursor = current_app.config['db'].cursor()
+            query = "UPDATE Flight SET status = %s WHERE flight_no = %s AND departure_date_and_time = %s"
+            cursor.execute(query,(new_status,keys[1],keys[2]))
+            current_app.config['db'].commit()
+            cursor.close()
+    session['success'] = True
+    return redirect(url_for('mainStaff.home_staff_change'))

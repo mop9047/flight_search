@@ -277,7 +277,7 @@ a:hover {
   .flights-table {
     font-size: 14px;
   }
-  
+
   .flights-table th,
   .flights-table td {
     padding: 10px 8px;
@@ -339,4 +339,38 @@ table tbody tr:hover {
   margin-top: 20px;
   border-left: 4px solid #0277bd;
   text-align: center;
+}
+
+.change-success-message {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #37db34;
+  margin-bottom: 20px;
+}
+
+select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  color: #333;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  appearance: none; /* Remove default arrow on some browsers */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+}
+
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+  background-color: #fff;
+}
+
+select option {
+  background-color: #fff;
+  color: #333;
 }
