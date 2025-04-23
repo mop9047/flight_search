@@ -47,7 +47,16 @@ def home_staff_airplane():
 
 @main.route('/home_airlineStaff_change', methods = ['GET','POST'])
 def home_staff_change():
-    return render_template('staff/home_airlineStaff_change.html',username=session['username'])
+    username = session['username']
+    airline = session['airline']
+
+    cursor = current_app.config['db'].cursor();
+    query = 'SELECT flight_no,departure_date_and_time,departure_airport_id,arrival_airport_id,arrival_date_and_time,status FROM Flight WHERE Airline_Name = %s'
+    cursor.execute(query, (airline))
+    data1 = cursor.fetchall()
+    # print("dad",data1)
+    cursor.close()
+    return render_template('staff/home_airlineStaff_change.html',username=username,flights = data1)
 
 @main.route('/home_airlineStaff_rating', methods = ['GET','POST'])
 def home_staff_rating():
