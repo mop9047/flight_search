@@ -57,7 +57,8 @@ def home_staff_change():
         session.pop('success')
 
     cursor = current_app.config['db'].cursor();
-    query = 'SELECT flight_no,departure_date_and_time,departure_airport_id,arrival_airport_id,arrival_date_and_time,status FROM Flight WHERE Airline_Name = %s'
+    query = 'SELECT flight_no,departure_date_and_time,departure_airport_id,arrival_airport_id,arrival_date_and_time,status \
+          FROM Flight WHERE Airline_Name = %s AND departure_date_and_time >= NOW()'
     cursor.execute(query, (airline))
     data1 = cursor.fetchall()
     # print("dad",data1)
