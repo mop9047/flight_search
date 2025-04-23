@@ -25,12 +25,6 @@
         </div>
         <button type="submit" class="search-button">Search Flights</button>
     </form>
-    
-    {% if error %}
-    <div class="error-message">
-        <p>{{ error }}</p>
-    </div>
-    {% endif %}
 </div>
 
 {% if flights %}
@@ -136,6 +130,7 @@
     <p>We couldn't find any return flights matching your search criteria. Please try different dates or locations.</p>
 </div>
 {% endif %}
+
 
 <style>
 .form-container {
@@ -268,5 +263,6 @@
     }
 }
 </style>
+
 
 {% endblock %}
