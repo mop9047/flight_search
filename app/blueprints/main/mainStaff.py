@@ -7,7 +7,7 @@ def home_staff():
     username = session['username']
 
     cursor = current_app.config['db'].cursor();
-    query = 'SELECT f_name FROM Airline_Staff WHERE username = %s'
+    query = 'SELECT f_name, Airline_name FROM Airline_Staff WHERE username = %s'
     cursor.execute(query, (username))
     data1 = cursor.fetchall() 
     
@@ -33,6 +33,10 @@ def home_staff_view():
     else:
         return render_template('staff/home_airlineStaff_view.html',error='No Session')
 
+@main.route('/home_airlineStaff_create', methods = ['GET','POST'])
+def home_staff_create():
+    return render_template('staff/home_airlineStaff_create.html',username=session['username'],usertype=session['usertype'],airline=session['airline'])
+
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
 def home_staff_airport():
     return render_template('staff/home_airlineStaff_airport.html',username=session['username'])
@@ -45,16 +49,11 @@ def home_staff_airplane():
 def home_staff_change():
     return render_template('staff/home_airlineStaff_change.html',username=session['username'])
 
-@main.route('/home_airlineStaff_create', methods = ['GET','POST'])
-def home_staff_create():
-    return render_template('staff/home_airlineStaff_create.html',username=session['username'])
-
 @main.route('/home_airlineStaff_rating', methods = ['GET','POST'])
 def home_staff_rating():
     return render_template('staff/home_airlineStaff_rating.html',username=session['username'])
 
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
 def home_staff_report():
-
     return render_template('staff/home_airlineStaff_report.html',username=session['username'])
 

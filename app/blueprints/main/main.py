@@ -17,11 +17,13 @@ def home():
 
 @main.route('/logout')
 def logout():
-   if 'data' in session:
+    if 'data' in session:
         session.pop('data')
+    if 'airline' in session:
+        session.pop('airline')
     
     session.pop('username')
-
+    session.pop('usertype')
     return redirect('/')
 
 @main.route('/search_flights', methods=['GET', 'POST'])
