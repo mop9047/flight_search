@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, session, redirect, url_for, current_app, flash
 from datetime import datetime, timedelta
 
 main = Blueprint('mainCust', __name__)
@@ -173,7 +173,7 @@ def submit_rating():
     comment = request.form.get('comment', '')
     
     # Debug print to verify we're getting the data
-    print(f"Rating submission - Airline: {airline_name}, Flight: {flight_no}, Rating: {rating}")
+    current_app.logger.debug(f"Rating submission - Airline: {airline_name}, Flight: {flight_no}, Rating: {rating}")
     
     # Validate input
     if not airline_name or not flight_no or not departure_time or not rating:
@@ -241,7 +241,7 @@ def submit_rating():
         return redirect(url_for('mainCust.home_cust_rate'))
     
     except Exception as e:
-        print(f"Error submitting rating: {e}")
+        current_app.logger.error(f"Error submitting rating: {e}")
         session['rating_error'] = f"Error submitting your rating: {str(e)}"
         return redirect(url_for('mainCust.home_cust_rate'))
 @main.route('/book_flight', methods=['POST'])
@@ -450,3 +450,77 @@ def home_cust_flight():
                           username=customer_data['name'] if customer_data else customer_email,
                           upcoming_flights=upcoming_flights,
                           past_flights=past_flights)
+
+@main.route('/cancel_flight', methods=['POST'])
+def cancel_flight():
+    if 'username' not in session:
+        return redirect(url_for('auth.login'))
+    
+    ticket_id = request.form.get('ticket_id')
+    if not ticket_id:
+        flash("Invalid ticket information", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
+    
+    customer_email = session['username']
+    
+    # Get flight details
+    cursor = current_app.config['db'].cursor()
+    flight_query = '''
+    SELECT t.ticket_id, t.departure_date_and_time 
+    FROM Ticket t
+    JOIN Purchases p ON t.ticket_id = p.ticket_id
+    WHERE t.ticket_id = %s AND p.email = %s
+    '''
+    
+    cursor.execute(flight_query, (ticket_id, customer_email))
+    flight_data = cursor.fetchone()
+    
+    if not flight_data:
+        cursor.close()
+        flash("Ticket not found or not owned by you", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
+    
+    # Check if flight is within 24 hours
+    departure_time = flight_data['departure_date_and_time']
+    if isinstance(departure_time, str):
+        departure_time = datetime.strptime(departure_time, '%Y-%m-%d %H:%M:%S')
+    
+    current_time = datetime.now()
+    time_until_departure = departure_time - current_time
+    
+    # Check if flight is within 24 hours but still process with different message
+    within_24_hours = time_until_departure.total_seconds() <= 24 * 3600
+    
+    try:
+       
+        
+        if within_24_hours:
+            flash("Flight cannot be cancelled since it is within 24 hours of departure ", "warning")
+
+        else:
+            # Start a transaction
+            current_app.config['db'].begin()
+            
+            # Delete from Purchases table
+            delete_purchase_query = 'DELETE FROM Purchases WHERE ticket_id = %s AND email = %s'
+            cursor.execute(delete_purchase_query, (ticket_id, customer_email))
+            
+            # Delete from Ticket table
+            delete_ticket_query = 'DELETE FROM Ticket WHERE ticket_id = %s'
+            cursor.execute(delete_ticket_query, (ticket_id,))
+            
+            # Commit the transaction
+            current_app.config['db'].commit()
+            
+            cursor.close()
+            flash("Flight cancelled successfully. Your payment will be refunded within 7-10 business days.", "success")
+        
+        return redirect(url_for('mainCust.home_cust_flight'))
+        
+    except Exception as e:
+        # If there's an error, rollback the transaction
+        current_app.config['db'].rollback()
+        cursor.close()
+        print(f"Error cancelling flight: {e}")
+        flash(f"Error cancelling flight: {e}", "danger")
+        return redirect(url_for('mainCust.home_cust_flight'))
