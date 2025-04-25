@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, current_app, flash
 from datetime import datetime, timedelta
+from .main import protected_cust
 
 main = Blueprint('mainCust', __name__)
 
 @main.route('/home_customer', methods = ['GET','POST'])
+@protected_cust
 def home_cust():
     username = session['username']
 
@@ -19,10 +21,12 @@ def home_cust():
 
 
 @main.route('/home_customer_search', methods = ['GET','POST'])
+@protected_cust
 def home_cust_search():
     return render_template('customer/home_customer_search.html', username=session['username'])
 
 @main.route('/customer_search_flights', methods = ['POST'])
+@protected_cust
 def customer_search_flights():
     # Get search parameters from form
     source = request.form.get('source', '')
@@ -97,6 +101,7 @@ def customer_search_flights():
                           return_flights=return_flights)
 
 @main.route('/home_customer_rate', methods = ['GET','POST'])
+@protected_cust
 def home_cust_rate():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -159,6 +164,7 @@ def home_cust_rate():
                           success=success)
 
 @main.route('/submit_rating', methods=['POST'])
+@protected_cust
 def submit_rating():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -245,6 +251,7 @@ def submit_rating():
         session['rating_error'] = f"Error submitting your rating: {str(e)}"
         return redirect(url_for('mainCust.home_cust_rate'))
 @main.route('/book_flight', methods=['POST'])
+@protected_cust
 def book_flight():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -282,6 +289,7 @@ def book_flight():
     return redirect(url_for('mainCust.payment_page'))
 
 @main.route('/payment_page', methods=['GET'])
+@protected_cust
 def payment_page():
     if 'username' not in session or 'booking' not in session:
         return redirect(url_for('auth.login'))
@@ -292,6 +300,7 @@ def payment_page():
                           booking=booking)
 
 @main.route('/process_payment', methods=['POST'])
+@protected_cust
 def process_payment():
     if 'username' not in session or 'booking' not in session:
         return redirect(url_for('auth.login'))
@@ -368,6 +377,7 @@ def process_payment():
         cursor.close()
 
 @main.route('/booking_confirmation/<ticket_id>', methods=['GET'])
+@protected_cust
 def booking_confirmation(ticket_id):
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -396,6 +406,7 @@ def booking_confirmation(ticket_id):
                           username=session['username'],
                           ticket=ticket_data)
 @main.route('/home_customer_flight', methods = ['GET','POST'])
+@protected_cust
 def home_cust_flight():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
@@ -452,6 +463,7 @@ def home_cust_flight():
                           past_flights=past_flights)
 
 @main.route('/cancel_flight', methods=['POST'])
+@protected_cust
 def cancel_flight():
     if 'username' not in session:
         return redirect(url_for('auth.login'))
