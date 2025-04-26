@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
+from .main import protected_staff
 
 main = Blueprint('mainStaff', __name__)
 
 @main.route('/home_staff', methods = ['GET','POST'])
+@protected_staff
 def home_staff():
     username = session['username']
 
@@ -18,6 +20,7 @@ def home_staff():
     return render_template('staff/home_airlineStaff.html', username=name, posts=data1)
 
 @main.route('/home_airlineStaff_view', methods = ['GET','POST'])
+@protected_staff
 def home_staff_view():
     if 'username' in session:
         username = session['username']
@@ -34,18 +37,22 @@ def home_staff_view():
         return render_template('staff/home_airlineStaff_view.html',error='No Session')
 
 @main.route('/home_airlineStaff_create', methods = ['GET','POST'])
+@protected_staff
 def home_staff_create():
     return render_template('staff/home_airlineStaff_create.html',username=session['username'],usertype=session['usertype'],airline=session['airline'])
 
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
+@protected_staff
 def home_staff_airport():
     return render_template('staff/home_airlineStaff_airport.html',username=session['username'])
 
 @main.route('/home_airlineStaff_airplane', methods = ['GET','POST'])
+@protected_staff
 def home_staff_airplane():
     return render_template('staff/home_airlineStaff_airplane.html',username=session['username'])
 
 @main.route('/home_airlineStaff_change', methods = ['GET','POST'])
+@protected_staff
 def home_staff_change():
     print('here')
     username = session['username']
@@ -66,10 +73,12 @@ def home_staff_change():
     return render_template('staff/home_airlineStaff_change.html',username=username,flights = data1, success=success)
 
 @main.route('/home_airlineStaff_rating', methods = ['GET','POST'])
+@protected_staff
 def home_staff_rating():
     return render_template('staff/home_airlineStaff_rating.html',username=session['username'])
 
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
+@protected_staff
 def home_staff_report():
     return render_template('staff/home_airlineStaff_report.html',username=session['username'])
 

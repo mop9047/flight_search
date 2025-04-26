@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
+from functools import wraps
 
 main = Blueprint('main', __name__)
 
@@ -25,6 +26,24 @@ def logout():
     session.pop('username')
     session.pop('usertype')
     return redirect('/')
+
+def protected_cust(route):
+    @wraps(route)
+    def wrapper(*args, **kwargs):
+        if session.get('usertype') == "customer" and session.get('username'):
+            return route(*args, **kwargs)
+        else:
+            return render_template('unauthorized.html')
+    return wrapper
+
+def protected_staff(route):
+    @wraps(route)
+    def wrapper(*args, **kwargs):
+        if session.get('usertype') == "staff" and session.get('username'):
+            return route(*args, **kwargs)
+        else:
+            return render_template('unauthorized.html')
+    return wrapper
 
 @main.route('/search_flights', methods=['GET', 'POST'])
 def search_flights():
@@ -82,4 +101,4 @@ def search_flights():
     
     return render_template('search_flights.html')
 
-    
+
