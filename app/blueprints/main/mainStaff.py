@@ -44,12 +44,82 @@ def home_staff_create():
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
 @protected_staff
 def home_staff_airport():
-    return render_template('staff/home_airlineStaff_airport.html',username=session['username'])
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        airport_id = request.form.get('Airport_id')
+        name = request.form.get('name')
+        city = request.form.get('city')
+        country = request.form.get('country')
+        if not airport_id or not name or not city or not country:
+            error = "All fields are required."
+            return render_template('staff/home_airlineStaff_airport.html', username=session['username'], error=error)
+        cursor = current_app.config['db'].cursor()
+        query_check = 'SELECT * FROM Airport WHERE airport_id = %s'
+        cursor.execute(query_check, (airport_id,))
+        existing_airport = cursor.fetchone()
+        if existing_airport:
+            error = "Airport ID already exists."
+            return render_template('staff/home_airlineStaff_airport.html', username=session['username'], error=error)
+        query_insert = """
+            INSERT INTO Airport (airport_id, name, city, country)
+            VALUES (%s, %s, %s, %s)
+        """
+        try:
+            cursor.execute(query_insert, (airport_id, name, city, country))
+            current_app.config['db'].commit()
+            success = "Airport added successfully!"
+            return render_template('staff/home_airlineStaff_airport.html', username=session['username'], success=success)
+        except Exception as e:
+            current_app.config['db'].rollback()
+            error = f"Database error: {e}"
+            return render_template('staff/home_airlineStaff_airport.html', username=session['username'], error=error)
+        finally:
+            cursor.close()
+    else:
+        return render_template('staff/home_airlineStaff_airport.html', username=session['username'])
 
 @main.route('/home_airlineStaff_airplane', methods = ['GET','POST'])
 @protected_staff
 def home_staff_airplane():
-    return render_template('staff/home_airlineStaff_airplane.html',username=session['username'])
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        airline_name = request.form.get('Airline_name')
+        airplane_id = request.form.get('id')
+        num_seats = request.form.get('num_seats')
+        manufacturing_co = request.form.get('manufacturing_co')
+        
+        if not airline_name or not airplane_id or not num_seats or not manufacturing_co:
+            error = "All fields are required."
+            return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], error=error)
+        
+        cursor = current_app.config['db'].cursor()
+        
+        try:
+            query_check = 'SELECT * FROM Airplane WHERE id = %s'
+            cursor.execute(query_check, (airplane_id,))
+            existing_airplane = cursor.fetchone()
+            if existing_airplane:
+                error = "Airplane ID already exists."
+                return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], error=error)
+            query_insert = """
+                INSERT INTO Airplane (id, Airline_name, num_seats, manufacturing_co)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(query_insert, (airplane_id, airline_name, num_seats, manufacturing_co))
+            current_app.config['db'].commit()
+            success = "Airplane added successfully!"
+            return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], success=success)
+        except Exception as e:
+            current_app.config['db'].rollback()
+            error = f"Database error: {e}"
+            return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], error=error)
+        finally:
+            cursor.close()
+    else:
+        return render_template('staff/home_airlineStaff_airplane.html', username=session['username'])
 
 @main.route('/home_airlineStaff_change', methods = ['GET','POST'])
 @protected_staff
