@@ -39,7 +39,41 @@ def home_staff_view():
 @main.route('/home_airlineStaff_create', methods = ['GET','POST'])
 @protected_staff
 def home_staff_create():
-    return render_template('staff/home_airlineStaff_create.html',username=session['username'],usertype=session['usertype'],airline=session['airline'])
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    cursor = current_app.config['db'].cursor()
+    airline = session['airline']
+
+    try:
+        query_future_flights = """
+            SELECT flight_no, departure_date_and_time, arrival_date_and_time, 
+                   departure_airport_id, arrival_airport_id, status
+            FROM Flight
+            WHERE Airline_Name = %s AND departure_date_and_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
+            ORDER BY departure_date_and_time ASC
+        """
+        cursor.execute(query_future_flights, (airline,))
+        future_flights = cursor.fetchall()
+
+        return render_template(
+            'staff/home_airlineStaff_create.html',
+            username=session['username'],
+            usertype=session['usertype'],
+            airline=airline,
+            future_flights=future_flights
+        )
+    except Exception as e:
+        error = f"An error occurred while retrieving future flights: {e}"
+        return render_template(
+            'staff/home_airlineStaff_create.html',
+            username=session['username'],
+            usertype=session['usertype'],
+            airline=session['airline'],
+            error=error
+        )
+    finally:
+        cursor.close()
 
 @main.route('/home_airlineStaff_airport', methods = ['GET','POST'])
 @protected_staff
