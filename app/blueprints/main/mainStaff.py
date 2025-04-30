@@ -150,5 +150,16 @@ def home_staff_rating():
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
 @protected_staff
 def home_staff_report():
-    return render_template('staff/home_airlineStaff_report.html',username=session['username'])
-
+    if 'username' in session:
+        username = session['username']
+        if 'data' in session:
+            data = session['data']
+            if len(data) > 0:
+                filters = session['search_filters']
+                return render_template('staff/home_airlineStaff_report.html',username=session['username'],data=data, filters=filters)
+            else:
+                return render_template('staff/home_airlineStaff_report.html',username=username, error='No Flights Found!')
+        else:
+            return render_template('staff/home_airlineStaff_report.html',username=username)
+    else:
+        return render_template('staff/home_airlineStaff_report.html',error='No Session')

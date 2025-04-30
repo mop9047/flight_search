@@ -66,7 +66,6 @@ def search_staff():
 	
     if('username' in session):
 		#creates a session for the the user
-		#session is a built in
         session['data'] = data
         session['search_filters'] = filters
         return redirect(url_for('mainStaff.home_staff_view'))
@@ -79,6 +78,59 @@ def search_staff():
 def edit_filter_staff():
     session.pop('data')
     return redirect(url_for('mainStaff.home_staff_view'))
+
+@search.route('/editTicketFilters', methods = ['GET','POST'])
+def edit_ticket_filter():
+    session.pop('data')
+    return redirect(url_for('mainStaff.home_staff_report'))
+
+@search.route('/searchTicketFlightsStaff', methods = ['GET','POST'])
+def search_ticket_staff():
+    airline = session['airline']
+
+    search_type = request.form['search_type']
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+
+
+    cursor = current_app.config['db'].cursor()
+
+    query = "SELECT COUNT(*) AS Total_Sold FROM Purchases WHERE 1 = 1"
+
+    params = []
+    filters = ["No Filters"]
+
+    if start_date:
+        if end_date:
+            query += " AND date_and_time BETWEEN %s AND %s + INTERVAL 1 DAY"
+            params.append(start_date)
+            params.append(end_date)
+            filters.append('Between: ' + start_date + ' and ' + end_date)
+
+        else:
+            # throw error
+            pass
+
+    if search_type == 'last_year':
+        query += " AND date_and_time >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);"
+        filters.append('Last Year')
+
+
+    if search_type == 'last_month':
+        query += " AND date_and_time >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH);"
+        filters.append('Last Month')
+
+    if len(filters) > 1:
+        filters = filters[1:]
+    cursor.execute(query, params)
+    data = cursor.fetchall()
+    cursor.close()
+    error = None
+
+    session['data'] = data
+    session['search_filters'] = filters
+    return redirect(url_for('mainStaff.home_staff_report'))
+
 
 @search.route('/createFlightsStaff', methods = ['GET','POST'])
 def create_flights_staff():

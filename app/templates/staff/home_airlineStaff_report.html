@@ -1,6 +1,65 @@
 {% extends "staff/home_airlineStaff.html" %} {% block title %}View Reports{%
 endblock %} {% block content %}
-
 <h1>View Reports</h1>
+{% if not data%}
 
+<form action="/searchTicketFlightsStaff" method="POST">
+  <h2>Find Ticket Data</h2>
+  <p>Use the following fields to filter your flight search</p>
+  <br />
+
+  <label for="search_type">Select Search Type:</label>
+  <select name="search_type" id="search_type" onchange="toggleDateFields()">
+    <option value="">-- Choose an option --</option>
+    <option value="date_range">Date Range</option>
+    <option value="last_year">Last Year</option>
+    <option value="last_month">Last Month</option>
+  </select>
+
+  <div id="date_range_fields" style="display: none">
+    <label for="start_date">Select Start Date:</label>
+    <input type="date" name="start_date" id="start_date" />
+
+    <label for="end_date">Select End Date:</label>
+    <input type="date" name="end_date" id="end_date" />
+  </div>
+
+  <button type="submit">View Reports</button>
+</form>
+{%endif%} {% if data %} {% if filters%}
+<div class="filter_container">
+  {%for filter in filters%}
+  <small class="filter_box"> {{filter}} </small>
+  {%endfor%}
+</div>
+<a href="/editTicketFilters">Edit Ticket Filters 🔎</a>
+{%endif%}
+
+<table>
+  <thead>
+    <tr>
+      <th>Total Sold</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in data %}
+    <tr>
+      <td>{{row ['Total_Sold']}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %} {% endblock %} {% block scripts %}
+<script>
+  function toggleDateFields() {
+    const searchType = document.getElementById("search_type").value;
+    const dateFields = document.getElementById("date_range_fields");
+
+    if (searchType === "date_range") {
+      dateFields.style.display = "block";
+    } else {
+      dateFields.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}
