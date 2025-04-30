@@ -15,4 +15,25 @@ endblock %} {% block content %}
     {% endif %}
     </form>
 </div>
+{% if airplanes %}
+<h1>Airplanes for {{airplanes[0]['Airline_name']}}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Airplane ID</th>
+            <th>Number of Seats</th>
+            <th>Manufacturing Company</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for airplane in airplanes %}
+        <tr>
+            <td>{{airplane['id']}}</td>
+            <td>{{airplane['num_seats']}}</td>
+            <td>{{airplane['manufacturing_co']}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}

@@ -110,8 +110,13 @@ def home_staff_airplane():
             """
             cursor.execute(query_insert, (airplane_id, airline_name, num_seats, manufacturing_co))
             current_app.config['db'].commit()
+
+            query_all_planes = 'SELECT * FROM Airplane WHERE Airline_name = %s'
+            cursor.execute(query_all_planes, (airline_name,))
+            airplanes = cursor.fetchall()
+
             success = "Airplane added successfully!"
-            return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], success=success)
+            return render_template('staff/home_airlineStaff_airplane.html', username=session['username'], success=success, airplanes=airplanes)
         except Exception as e:
             current_app.config['db'].rollback()
             error = f"Database error: {e}"
@@ -145,10 +150,97 @@ def home_staff_change():
 @main.route('/home_airlineStaff_rating', methods = ['GET','POST'])
 @protected_staff
 def home_staff_rating():
-    return render_template('staff/home_airlineStaff_rating.html',username=session['username'])
+
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    cursor = current_app.config['db'].cursor()
+    airline = session['airline']
+
+    try:
+        query_avg_ratings = """
+            SELECT flight_no, departure_date_and_time, AVG(rate) AS avg_rating
+            FROM Review
+            WHERE Airline_Name = %s
+            GROUP BY flight_no, departure_date_and_time
+            ORDER BY avg_rating DESC
+        """
+        cursor.execute(query_avg_ratings, (airline,))
+        avg_ratings = cursor.fetchall()
+
+        query_reviews = """
+            SELECT flight_no, departure_date_and_time, email, rate, comment
+            FROM Review
+            WHERE Airline_Name = %s
+            ORDER BY flight_no, departure_date_and_time, rate DESC
+        """
+        cursor.execute(query_reviews, (airline,))
+        reviews = cursor.fetchall()
+
+        return render_template(
+            'staff/home_airlineStaff_rating.html',
+            username=session['username'],
+            avg_ratings=avg_ratings,
+            reviews=reviews
+        )
+
+    except Exception as e:
+        error = f"An error occurred while retrieving ratings: {e}"
+        return render_template('staff/home_airlineStaff_rating.html', username=session['username'], error=error)
+
+    finally:
+        cursor.close()
 
 @main.route('/home_airlineStaff_report', methods = ['GET','POST'])
 @protected_staff
 def home_staff_report():
-    return render_template('staff/home_airlineStaff_report.html',username=session['username'])
+    if 'username' not in session:
+        return redirect(url_for('login'))
 
+    cursor = current_app.config['db'].cursor()
+    airline = session['airline']
+
+    try:
+        start_date = '1900-01-01'
+        end_date = '2100-01-01'
+
+        if request.method == 'POST':
+            start_date = request.form.get('start_date') or start_date
+            end_date = request.form.get('end_date') or end_date
+
+        query_total_sales = """
+            SELECT COUNT(*) AS total_tickets
+            FROM Purchases
+            JOIN Ticket ON Purchases.ticket_id = Ticket.ticket_id
+            WHERE Ticket.Airline_Name = %s
+            AND date_and_time BETWEEN %s AND %s
+        """
+        cursor.execute(query_total_sales, (airline, start_date, end_date))
+        total_sales = cursor.fetchone()
+
+        query_monthly_sales = """
+            SELECT DATE_FORMAT(date_and_time, '%%Y-%%m') AS month, COUNT(*) AS tickets_sold
+            FROM Purchases
+            JOIN Ticket ON Purchases.ticket_id = Ticket.ticket_id
+            WHERE Ticket.Airline_Name = %s
+            GROUP BY month
+            ORDER BY month
+        """
+        cursor.execute(query_monthly_sales, (airline,))
+        monthly_sales = cursor.fetchall()
+
+        return render_template(
+            'staff/home_airlineStaff_report.html',
+            username=session['username'],
+            total_sales=total_sales,
+            monthly_sales=monthly_sales,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+    except Exception as e:
+        error = f"An error occurred while retrieving reports: {e}"
+        return render_template('staff/home_airlineStaff_report.html', username=session['username'], error=error)
+
+    finally:
+        cursor.close()
