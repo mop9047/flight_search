@@ -5,20 +5,19 @@ endblock %} {% block content %}
 
 <form action="/home_airlineStaff_report" method="POST">
     <label for="start_date">Start Date:</label>
-    <input type="date" id="start_date" name="start_date" />
+    <input type="date" id="start_date" name="start_date" value="{{ start_date }}" />
     <label for="end_date">End Date:</label>
-    <input type="date" id="end_date" name="end_date" />
+    <input type="date" id="end_date" name="end_date" value="{{ end_date }}" />
     <button type="submit">Filter</button>
 </form>
 
 {% if total_sales %}
 <h2>Total Sales</h2>
 <p><strong>Total Tickets Sold:</strong> {{ total_sales['total_tickets'] }}</p>
-<p><strong>Total Revenue:</strong> ${{ total_sales['total_revenue'] }}</p>
 {% endif %}
 
 {% if monthly_sales %}
-<h2>Monthly Sales</h2>
+<h2>Monthly Sales Data</h2>
 <table>
     <thead>
         <tr>

@@ -201,13 +201,22 @@ def home_staff_report():
     airline = session['airline']
 
     try:
+        start_date = '1900-01-01'
+        end_date = '2100-01-01'
+
+        if request.method == 'POST':
+            start_date = request.form.get('start_date') or start_date
+            end_date = request.form.get('end_date') or end_date
+
         query_total_sales = """
-            SELECT COUNT(*) AS total_tickets, SUM(price) AS total_revenue
+            SELECT COUNT(*) AS total_tickets
             FROM Purchases
             JOIN Ticket ON Purchases.ticket_id = Ticket.ticket_id
             WHERE Ticket.Airline_Name = %s
             AND date_and_time BETWEEN %s AND %s
         """
+        cursor.execute(query_total_sales, (airline, start_date, end_date))
+        total_sales = cursor.fetchone()
 
         query_monthly_sales = """
             SELECT DATE_FORMAT(date_and_time, '%%Y-%%m') AS month, COUNT(*) AS tickets_sold
@@ -217,22 +226,6 @@ def home_staff_report():
             GROUP BY month
             ORDER BY month
         """
-
-        if request.method == 'POST':
-            start_date = request.form.get('start_date')
-            end_date = request.form.get('end_date')
-
-            if not start_date:
-                start_date = '1900-01-01'
-            if not end_date:
-                end_date = '2100-01-01'
-
-            cursor.execute(query_total_sales, (airline, start_date, end_date))
-            total_sales = cursor.fetchone()
-
-        else:
-            total_sales = None
-
         cursor.execute(query_monthly_sales, (airline,))
         monthly_sales = cursor.fetchall()
 
@@ -240,7 +233,9 @@ def home_staff_report():
             'staff/home_airlineStaff_report.html',
             username=session['username'],
             total_sales=total_sales,
-            monthly_sales=monthly_sales
+            monthly_sales=monthly_sales,
+            start_date=start_date,
+            end_date=end_date
         )
 
     except Exception as e:
@@ -249,4 +244,3 @@ def home_staff_report():
 
     finally:
         cursor.close()
-
