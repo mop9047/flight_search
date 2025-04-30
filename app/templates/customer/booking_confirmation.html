@@ -24,9 +24,15 @@
         </div>
     </div>
     
-    <p>An email confirmation has been sent to your registered email address.</p>
-    
-    <a href="{{ url_for('mainCust.home_cust_flight') }}" class="btn btn-primary">View My Flights</a>
-    <a href="{{ url_for('mainCust.home_cust') }}" class="btn btn-secondary">Return to Home</a>
+    <div class="button-group">
+        <a href="{{ url_for('mainCust.home_cust_flight') }}" class="btn btn-primary">View My Flights</a>
+        <a href="{{ url_for('mainCust.home_cust') }}" class="btn btn-secondary">Return to Home</a>
+    </div>
 </div>
 {% endblock %}
+
+<style>
+    .button-group a {
+    margin-right: 100px; /* Add spacing between buttons */
+}
+</style>
