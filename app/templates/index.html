@@ -13,14 +13,6 @@
 			<li><a href="/register">Register</a></li>
 			<li><a href="/login">Login</a></li>
 		  </ul>
-
-		<!-- <div>
-			{% if not message %}
-			<a href="/login">Login</a>
-			<a href="/register">Register</a>
-			{% endif %}
-		</div> -->
-		
 	</nav>
 </header>
 
@@ -28,7 +20,7 @@
 
 	<h1>Welcome to Flight Search</h1>
 	<div>
-		hero image
+		<img src="{{ url_for('static', filename='airport.webp') }}" alt="hero image" width="60%"/>
 	</div>
 	<div>
 		<h2>Search for a flight here!</h2>
