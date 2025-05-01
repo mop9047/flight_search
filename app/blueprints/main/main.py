@@ -66,12 +66,12 @@ def search_flights():
         FROM Flight f 
         JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
         JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
-        WHERE (a1.city = %s OR a1.name = %s) 
-        AND (a2.city = %s OR a2.name = %s)
+        WHERE (a1.city = %s OR a1.name = %s OR a1.Airport_id = %s) 
+        AND (a2.city = %s OR a2.name = %s OR a2.Airport_id = %s)
         AND DATE(f.departure_date_and_time) = %s
         '''
         
-        cursor.execute(query, (source, source, destination, destination, departure_date))
+        cursor.execute(query, (source, source, source, destination, destination, destination, departure_date))
         departure_flights = cursor.fetchall()
         
         # Handle round trip search
@@ -84,12 +84,12 @@ def search_flights():
             FROM Flight f 
             JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
             JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
-            WHERE (a1.city = %s OR a1.name = %s) 
-            AND (a2.city = %s OR a2.name = %s)
+            WHERE (a1.city = %s OR a1.name = %s OR a1.Airport_id = %s) 
+            AND (a2.city = %s OR a2.name = %s OR a2.Airport_id = %s)
             AND DATE(f.departure_date_and_time) = %s
             '''
             
-            cursor.execute(query, (destination, destination, source, source, return_date))
+            cursor.execute(query, (destination, destination, destination, source, source, source, return_date))
             return_flights = cursor.fetchall()
             
         cursor.close()
