@@ -66,6 +66,43 @@ endblock %} {% block content %} {% if error!=True%}
     {% endfor %}
   </tbody>
 </table>
+{% endif %} {%if future_flights%}
+<h2>Flights For Next 30 Days</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Flight</th>
+      <th>Departure</th>
+      <th>Arrival</th>
+      <th>Status</th>
+      <th>Base Price</th>
+      <th>AA Name</th>
+      <th>Plane ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in future_flights%}
+    <tr>
+      <td>{{row ['flight_no']}}</td>
+      <td>
+        {{row ['departure_date_and_time']}} {{row ['departure_airport_id']}}
+      </td>
+      <td>{{row ['arrival_date_and_time']}} {{row ['arrival_airport_id']}}</td>
+      <td>{{row ['status']}}</td>
+      <td>{{row ['base_price']}}</td>
+      <td>{{row ['Airplane_airline_name']}}</td>
+      <td>{{row ['Airplane_id']}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<a href="/searchFlightCustomers">See Customers based on flight</a>
+{% else %}
+
+<div class="no-flights-message">
+  <p>No return flights found for next 30 days.</p>
+</div>
+
 {% endif %} {% endblock %} {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {

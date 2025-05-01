@@ -24,6 +24,22 @@ def home_staff():
 def home_staff_view():
     if 'username' in session:
         username = session['username']
+        airline = session['airline']
+
+        cursor = current_app.config['db'].cursor()
+
+        query_future_flights = """
+            SELECT flight_no, departure_date_and_time, arrival_date_and_time, 
+                   departure_airport_id, arrival_airport_id, status, base_price, Airplane_airline_name, Airplane_id
+            FROM Flight
+            WHERE Airline_Name = %s AND departure_date_and_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
+            ORDER BY departure_date_and_time ASC
+        """
+
+        cursor.execute(query_future_flights, (airline,))
+        future_flights = cursor.fetchall()
+        cursor.close()
+
         if 'data' in session:
             data = session['data']
             if len(data) > 0:
@@ -32,7 +48,7 @@ def home_staff_view():
             else:
                 return render_template('staff/home_airlineStaff_view.html',username=username, error='No Flights Found!')
         else:
-            return render_template('staff/home_airlineStaff_view.html',username=username)
+            return render_template('staff/home_airlineStaff_view.html',username=username,future_flights=future_flights)
     else:
         return render_template('staff/home_airlineStaff_view.html',error='No Session')
 
@@ -163,7 +179,6 @@ def home_staff_airplane():
 @main.route('/home_airlineStaff_change', methods = ['GET','POST'])
 @protected_staff
 def home_staff_change():
-    print('here')
     username = session['username']
     airline = session['airline']
 
@@ -278,3 +293,18 @@ def home_staff_report():
 
     finally:
         cursor.close()
+
+
+@main.route('/searchFlightCustomers', methods = ['GET','POST'])
+@protected_staff
+def search_flight_customers():
+    username = session['username']
+    if 'data' in session:
+        data = session.pop('data')
+        if len(data) > 0:
+            filters = session.pop('filters')
+            return render_template('staff/home_airlineStaff_flightCust.html',username=username, flights=data, filters=filters)
+        else:
+            return render_template('staff/home_airlineStaff_flightCust.html',username=username, error='Error: There are either no customers or you have entered an invalid flight!')
+    else:
+        return render_template('staff/home_airlineStaff_flightCust.html',username=username)

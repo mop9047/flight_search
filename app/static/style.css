@@ -374,3 +374,14 @@ select option {
   background-color: #fff;
   color: #333;
 }
+
+.filter_container {
+  display: flex;
+}
+
+.filter_box {
+  background-color: #929292;
+  color: #e8f4f8;
+  border-radius: 2px;
+  padding: 2px;
+}

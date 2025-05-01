@@ -58,40 +58,37 @@ Flights{% endblock %} {% block content %}
   {% if error %}
   <p class="error"><strong>Error:</strong> {{error}}</p>
   {% endif %}
-
-  <h2>Future Flights (Next 30 Days)</h2>
-  {% if future_flights %}
-  <table>
-    <thead>
-      <tr>
-        <th>Flight No</th>
-        <th>Departure Date & Time</th>
-        <th>Arrival Date & Time</th>
-        <th>Departure Airport</th>
-        <th>Arrival Airport</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for flight in future_flights %}
-      <tr>
-        <td>{{ flight['flight_no'] }}</td>
-        <td>{{ flight['departure_date_and_time'] }}</td>
-        <td>{{ flight['arrival_date_and_time'] }}</td>
-        <td>{{ flight['departure_airport_id'] }}</td>
-        <td>{{ flight['arrival_airport_id'] }}</td>
-        <td>{{ flight['status'] }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p>No flights found for the next 30 days.</p>
-  {% endif %}
-
 </form>
 
-{% endblock %} {% block scripts %}
+<h2>Future Flights (Next 30 Days)</h2>
+{% if future_flights %}
+<table>
+  <thead>
+    <tr>
+      <th>Flight No</th>
+      <th>Departure Date & Time</th>
+      <th>Arrival Date & Time</th>
+      <th>Departure Airport</th>
+      <th>Arrival Airport</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for flight in future_flights %}
+    <tr>
+      <td>{{ flight['flight_no'] }}</td>
+      <td>{{ flight['departure_date_and_time'] }}</td>
+      <td>{{ flight['arrival_date_and_time'] }}</td>
+      <td>{{ flight['departure_airport_id'] }}</td>
+      <td>{{ flight['arrival_airport_id'] }}</td>
+      <td>{{ flight['status'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No flights found for the next 30 days.</p>
+{% endif %} {% endblock %} {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const startDateInput = document.getElementById("dep_date");
