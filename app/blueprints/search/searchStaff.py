@@ -59,9 +59,7 @@ def search_staff():
         filters = filters[1:]
 
     cursor.execute(query, params)
-	#stores the results in a variable
     data = cursor.fetchall()
-	#use fetchall() if you are expecting more than 1 data row
     cursor.close()
     error = None
 	
@@ -123,3 +121,32 @@ def change_flight_staff():
             cursor.close()
     session['success'] = True
     return redirect(url_for('mainStaff.home_staff_change'))
+
+@search.route('/searchCustomerFlights', methods = ['GET','POST'])
+def search_cust_flights():
+    airline = session['airline']
+    flight_no = request.form['flight_no']
+    dep_date = request.form['dep_date']
+    dep_time = request.form['dep_time']
+
+    dep_date_time = f"{dep_date} {dep_time}:00"
+
+    cursor = current_app.config['db'].cursor()
+    query = """SELECT c.name, c.passport_number
+        FROM Ticket t
+        JOIN Purchases p ON t.ticket_id = p.ticket_id
+        JOIN Customer c ON p.email = c.email
+        WHERE t.Airline_name = %s AND t.flight_no = %s AND t.departure_date_and_time = %s;
+        """
+    cursor.execute(query, (airline, flight_no, dep_date_time))
+    data = cursor.fetchall()
+    cursor.close()
+
+    filters = ["Flight " + flight_no + " at " + dep_date_time]
+    
+    session['data'] = data
+    session['filters'] = filters
+
+    return redirect(url_for('mainStaff.search_flight_customers'))
+
+
