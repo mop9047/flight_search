@@ -43,12 +43,9 @@ endblock %} {% block content %} {% if error!=True%}
 <table>
   <thead>
     <tr>
-      <th>Airline</th>
       <th>Flight</th>
-      <th>Departure Date</th>
       <th>Departure</th>
       <th>Arrival</th>
-      <th>Arrival Date</th>
       <th>Status</th>
       <th>Base Price</th>
       <th>AA Name</th>
@@ -58,12 +55,9 @@ endblock %} {% block content %} {% if error!=True%}
   <tbody>
     {% for row in flights %}
     <tr>
-      <td>{{row ['Airline']}}</td>
       <td>{{row ['Flight']}}</td>
-      <td>{{row ['Departure_Date']}}</td>
-      <td>{{row ['Departure']}}</td>
-      <td>{{row ['Arrival']}}</td>
-      <td>{{row ['Arrival_Date']}}</td>
+      <td>{{row ['Departure_Date']}} {{row ['Departure']}}</td>
+      <td>{{row ['Arrival_Date']}} {{row ['Arrival']}}</td>
       <td>{{row ['status']}}</td>
       <td>{{row ['base_price']}}</td>
       <td>{{row ['AA_name']}}</td>
