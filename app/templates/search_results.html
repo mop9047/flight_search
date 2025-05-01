@@ -32,9 +32,6 @@
                             <th>To</th>
                             <th>Price</th>
                             <th>Status</th>
-                            {% if session.username %}
-                            <th>Action</th>
-                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -48,9 +45,6 @@
                             <td>{{ flight.arrival_city }} ({{ flight.arrival_airport }})</td>
                             <td>${{ flight.base_price }}</td>
                             <td>{{ flight.status }}</td>
-                            {% if session.username and session.usertype == 'customer' %}
-                            <td><a href="/book_flight?airline={{ flight.Airline_Name }}&flight_no={{ flight.flight_no }}&departure={{ flight.departure_date_and_time }}" class="action-link">Book</a></td>
-                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
