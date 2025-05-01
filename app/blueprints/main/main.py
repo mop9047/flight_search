@@ -25,7 +25,7 @@ def logout():
     
     session.pop('username')
     session.pop('usertype')
-    return redirect('/')
+    return render_template('logout.html')
 
 def protected_cust(route):
     @wraps(route)

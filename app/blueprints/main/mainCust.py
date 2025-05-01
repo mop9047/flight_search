@@ -261,28 +261,74 @@ def book_flight():
     flight_no = request.form.get('flight_no')
     departure_time = request.form.get('departure_time')
     
-    # Get the base price from the flight
+    # Get the flight information and airplane capacity
     cursor = current_app.config['db'].cursor()
-    query = 'SELECT base_price FROM Flight WHERE Airline_Name = %s AND flight_no = %s AND departure_date_and_time = %s AND arrival_date_and_time > NOW()'
+    
+    # Query to get flight details and airplane capacity
+    query = '''
+    SELECT f.base_price, f.Airline_Name, f.flight_no, f.departure_date_and_time, 
+           f.arrival_date_and_time, a1.name as departure_airport, a2.name as arrival_airport,
+           ap.num_seats
+    FROM Flight f
+    JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+    JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+    JOIN Airplane ap ON f.Airplane_airline_name = ap.Airline_name AND f.Airplane_id = ap.id
+    WHERE f.Airline_Name = %s AND f.flight_no = %s AND f.departure_date_and_time = %s 
+    AND f.arrival_date_and_time > NOW()
+    '''
+    
     cursor.execute(query, (airline, flight_no, departure_time))
     flight_data = cursor.fetchone()
-    cursor.close()
     
     if not flight_data:
         # Flight not found
+        flash("Flight not available for booking", "danger")
         return redirect(url_for('mainCust.home_cust_search'))
     
-    base_price = flight_data['base_price']
+    # Get the number of tickets already sold for this flight
+    tickets_query = '''
+    SELECT COUNT(*) as tickets_sold
+    FROM Ticket
+    WHERE Airline_name = %s AND flight_no = %s AND departure_date_and_time = %s
+    '''
+    cursor.execute(tickets_query, (airline, flight_no, departure_time))
+    ticket_data = cursor.fetchone()
     
-    # To do: Calculate the sold price based on other factors 
-    sold_price = base_price
+    cursor.close()
+    
+    # Calculate current capacity usage
+    base_price = float(flight_data['base_price'])
+    capacity = int(flight_data['num_seats'])
+    tickets_sold = int(ticket_data['tickets_sold'])
+    
+    # Check if flight is full
+    if tickets_sold >= capacity:
+        flash("Sorry, this flight is fully booked", "danger")
+        return redirect(url_for('mainCust.home_cust_search'))
+    
+    # Calculate dynamic price based on capacity
+    # If 60% or more of seats are booked, add 20% to the base price
+    capacity_percentage = (tickets_sold / capacity) * 100
+    
+    if capacity_percentage >= 60:
+        sold_price = base_price * 1.2  # Add 20% to base price
+    else:
+        sold_price = base_price
+    
+    # Round to 2 decimal places
+    sold_price = round(sold_price, 2)
     
     # Store flight booking details in session for payment page
     session['booking'] = {
         'airline': airline,
         'flight_no': flight_no,
         'departure_time': departure_time,
-        'sold_price': sold_price
+        'sold_price': sold_price,
+        'departure_airport': flight_data['departure_airport'],
+        'arrival_airport': flight_data['arrival_airport'],
+        'arrival_time': flight_data['arrival_date_and_time'],
+        'capacity_percentage': capacity_percentage,
+        'base_price': base_price
     }
     
     # Redirect to payment page
@@ -318,21 +364,50 @@ def process_payment():
     card_num = request.form.get('card_num')
     name_on_card = request.form.get('name_on_card')
     card_expiry_date = request.form.get('card_expiry_date')
+    # ---- DEBUG LOGS ----
+    print("DEBUG process_payment - booking in session:", session.get('booking'))
+    print(f"DEBUG process_payment - form values -> card_type: {card_type}, card_num: {card_num}, "
+          f"name_on_card: {name_on_card}, expiry: {card_expiry_date}")
     
+    # Validate that all fields are present
     # Validate payment details
     if not card_type or not card_num or not name_on_card or not card_expiry_date:
+        print("DEBUG process_payment - missing payment fields")
+        flash("All payment fields are required", "danger")
         return render_template('customer/payment_page.html', 
                              username=session['username'],
                              booking=booking,
                              error="All payment fields are required")
     
-    # Generate a ticket ID
-    import uuid
-    ticket_id = str(uuid.uuid4())[:20]
+    # Basic card validation
+    if not validate_card(card_type, card_num, card_expiry_date):
+        print("DEBUG process_payment - validate_card returned False")
+        flash("Invalid card information provided", "danger")
+        return render_template('customer/payment_page.html',
+                               username=session['username'],
+                               booking=booking,
+                               error="Invalid card information provided")
     
-    # Insert ticket record with payment details
+    # Initialize cursor first
     cursor = current_app.config['db'].cursor()
+    
     try:
+        # Generate a ticket ID based on the number of tickets booked
+        # First, get the count of tickets already in the system
+        ticket_count_query = '''
+        SELECT COUNT(*) as total_tickets
+        FROM Ticket
+        '''
+        cursor.execute(ticket_count_query)
+        ticket_count_data = cursor.fetchone()
+        
+        # The new ticket ID will be the next number (current count + 1)
+        next_ticket_number = ticket_count_data['total_tickets'] + 1
+        
+        # Format the ticket ID with leading zeros (e.g., TKT00001)
+        ticket_id = f"TKT{next_ticket_number:05d}"
+        print(f"DEBUG process_payment - generated ticket_id: {ticket_id}")
+        
         # Start a transaction
         current_app.config['db'].begin()
         
@@ -361,13 +436,17 @@ def process_payment():
         # Clear booking data from session
         session.pop('booking', None)
         
+        # Add debug print to help diagnose issues
+        print(f"Redirecting to booking confirmation with ticket ID: {ticket_id}")
+        
         # Redirect to booking confirmation page
         return redirect(url_for('mainCust.booking_confirmation', ticket_id=ticket_id))
         
     except Exception as e:
         # If there's an error, rollback the transaction
         current_app.config['db'].rollback()
-        print(f"Error processing payment: {e}")
+        current_app.logger.error(f"Error processing payment: {e}")
+        print(f"Payment processing error: {e}")  # Add debug print
         return render_template('customer/payment_page.html', 
                              username=session['username'],
                              booking=booking,
@@ -375,6 +454,23 @@ def process_payment():
     
     finally:
         cursor.close()
+def validate_card(card_type, card_num, expiry_date):
+    """
+    Basic validation for card information
+    """
+    # Convert expiry date to datetime
+    try:
+        expiry = datetime.strptime(expiry_date, '%Y-%m-%d')
+        if expiry < datetime.now():
+            return False
+    except:
+        return False
+    
+    # Basic card number validation
+    if not card_num.isdigit():
+        return False
+    
+    return True
 
 @main.route('/booking_confirmation/<ticket_id>', methods=['GET'])
 @protected_cust

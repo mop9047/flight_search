@@ -6,6 +6,7 @@ search = Blueprint('searchStaff', __name__)
 def search_staff():
     #grabs information from the forms
     username = session['username']
+    airline = session['airline']
 	
     start_date = request.form['start_date']
     end_date = request.form['end_date']
@@ -22,9 +23,9 @@ def search_staff():
                 arrival_date_and_time AS Arrival_Date, \
                      status, base_price, \
                          Airplane_airline_name AS AA_name, \
-                             Airplane_id FROM Flight WHERE 1=1"
+                             Airplane_id FROM Flight WHERE Airline_Name = %s"
 	
-    params = []
+    params = [airline]
     filters = ["No Filters"]
         
     if start_date:
