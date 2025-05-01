@@ -98,11 +98,25 @@ def create_flights_staff():
 
     dep_date_time = f"{dep_date} {dep_time}:00"
     arr_date_time = f"{arr_date} {arr_time}:00"
-    
-    print('TIMEF',arr_time)
+
+
     cursor = current_app.config['db'].cursor()
-    query = "INSERT INTO FLIGHT VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-    cursor.execute(query, (airline, flight_no,dep_date_time,dep_airport,arr_airport, arr_date_time ,status,base_price,airline,AA_id))
+    # query = "INSERT INTO FLIGHT VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    query = """
+    INSERT INTO FLIGHT
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ON DUPLICATE KEY UPDATE
+        departure_airport_id = %s,
+        arrival_airport_id = %s,
+        arrival_date_and_time = %s,
+        status = %s,
+        base_price = %s,
+        Airplane_airline_name = %s,
+        Airplane_id = %s
+    """
+    cursor.execute(query, (airline, flight_no,dep_date_time,dep_airport,arr_airport, arr_date_time ,status,base_price,airline,AA_id, \
+                           dep_airport,arr_airport,arr_date_time,status,base_price,airline,AA_id
+                           ))
     current_app.config['db'].commit()
     cursor.close()
     return redirect(url_for('mainStaff.home_staff_create'))
