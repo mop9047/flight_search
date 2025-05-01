@@ -49,12 +49,12 @@ def customer_search_flights():
     # Check if airports/cities exist
     check_query = '''
     SELECT COUNT(*) as count FROM Airport 
-    WHERE Airport_id = %s OR city = %s
+    WHERE Airport_id = %s OR city = %s OR name = %s
     '''
-    cursor.execute(check_query, (source, source))
+    cursor.execute(check_query, (source, source,source))
     source_exists = cursor.fetchone()['count'] > 0
     
-    cursor.execute(check_query, (destination, destination))
+    cursor.execute(check_query, (destination, destination,destination))
     destination_exists = cursor.fetchone()['count'] > 0
     
     if not source_exists:
@@ -69,25 +69,25 @@ def customer_search_flights():
     
     # Base query for outbound flights
     query = '''
-    SELECT f.Airline_Name, f.flight_no, f.departure_date_and_time, f.arrival_date_and_time, 
-        a1.name as departure_airport, a2.name as arrival_airport, 
-        a1.city as departure_city, a2.city as arrival_city, f.base_price, f.status
-    FROM Flight f 
-    JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
-    JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
-    WHERE (a1.city = %s OR a1.name = %s) 
-    AND (a2.city = %s OR a2.name = %s)
-    AND DATE(f.departure_date_and_time) = %s
+   SELECT f.Airline_Name, f.flight_no, f.departure_date_and_time, f.arrival_date_and_time, 
+               a1.name as departure_airport, a2.name as arrival_airport, 
+               a1.city as departure_city, a2.city as arrival_city, f.base_price, f.status
+        FROM Flight f 
+        JOIN Airport a1 ON f.departure_airport_id = a1.Airport_id
+        JOIN Airport a2 ON f.arrival_airport_id = a2.Airport_id
+        WHERE (a1.city = %s OR a1.name = %s OR a1.Airport_id = %s) 
+        AND (a2.city = %s OR a2.name = %s OR a2.Airport_id = %s)
+        AND DATE(f.departure_date_and_time) = %s
     '''
     
     # Execute query for outbound flights
-    cursor.execute(query, (source, source, destination, destination, departure_date))
+    cursor.execute(query, (source, source, source, destination, destination, destination, departure_date))
     flights = cursor.fetchall()
     
     # If return date is provided, search for return flights
     return_flights = None
     if return_date:
-        cursor.execute(query, (destination, destination, source, source, return_date))
+        cursor.execute(query, (destination, destination, destination, source, source, source, return_date))
         return_flights = cursor.fetchall()
     
     cursor.close()
