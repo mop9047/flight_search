@@ -7,7 +7,7 @@ CREATE TABLE Customer (
     street VARCHAR(100),
     city VARCHAR(50),
     state VARCHAR(50),
-    phone_num VARCHAR(10),
+    phone_num VARCHAR(20),
     passport_number VARCHAR(50),
     passport_expiration DATE,
     passport_country VARCHAR(50),
@@ -95,7 +95,7 @@ CREATE TABLE Airline_Staff (
 -- Create Phone_num table for Airline Staff
 CREATE TABLE Phone_num (
     username VARCHAR(50),
-    phone_num VARCHAR(10),
+    phone_num VARCHAR(20),
     PRIMARY KEY (username, phone_num),
     FOREIGN KEY (username) REFERENCES Airline_Staff(username)
 );

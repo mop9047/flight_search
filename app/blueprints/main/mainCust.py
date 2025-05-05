@@ -107,6 +107,7 @@ def home_cust_rate():
         return redirect(url_for('auth.login'))
     
     customer_email = session['username']
+    # print(customer_email)
     
     # Check for messages in session
     error = None
