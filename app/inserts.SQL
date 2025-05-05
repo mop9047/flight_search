@@ -54,3 +54,18 @@ INSERT INTO `Purchases` (`ticket_id`, `email`, `date_and_time`) VALUES
 ('20', 'testcustomer@nyu.edu', '2024-12-16 11:55:55');
 
 
+INSERT INTO `Review` (`email`, `Airline_Name`, `flight_no`, `departure_date_and_time`, `rate`, `comment`) 
+VALUES ('testcustomer@nyu.edu', 'Delta', '102', '2025-02-12 13:25:25', '4', 'Very Comfortable ');
+
+INSERT INTO `Review` (`email`, `Airline_Name`, `flight_no`, `departure_date_and_time`, `rate`, `comment`) 
+VALUES ('user1@nyu.edu', 'Delta', '102', '2025-02-12 13:25:25', '5', 'Relaxing, check-in and onboarding very professional');
+
+INSERT INTO `Review` (`email`, `Airline_Name`, `flight_no`, `departure_date_and_time`, `rate`, `comment`) 
+VALUES ('user2@nyu.edu', 'Delta', '102', '2025-02-12 13:25:25', '3', 'Satisfied and will use the same flight again');
+
+INSERT INTO `Review` (`email`, `Airline_Name`, `flight_no`, `departure_date_and_time`, `rate`, `comment`) 
+VALUES ('testcustomer@nyu.edu', 'Delta', '104', '2025-03-07 13:25:25', '1', 'Customer Care services are not good');
+
+INSERT INTO `Review` (`email`, `Airline_Name`, `flight_no`, `departure_date_and_time`, `rate`, `comment`) 
+VALUES ('user1@nyu.edu', 'Delta', '104', '2025-03-07 13:25:25', '5', 'Comfortable journey and Professional');
+
