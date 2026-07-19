@@ -1,22 +1,71 @@
-## How to Start?
+# Flight Search & Booking System
 
-1. Go to terminal and run this code `git clone https://github.com/mop9047/flight_search.git`
-2. Run `pip install flask` and `pip install mysql`
+A full-stack web application for searching and booking flights, built with Python (Flask) and MySQL. Supports two distinct user roles — customers and airline staff — each with their own dashboard and feature set.
 
-## Run in Your Computer
+## Features
 
-1. Start the database in MAMP
-2. Create a databse called 'flights_new' and enter the queries from `create_tables.SQL` to have the tables setup
-3. Run the `run.py` in vscode and paste the url `http://127.0.0.1:8889` in your browser
+### Customer
+- Register and log in with session-based authentication
+- Search flights by origin, destination, and date (one-way or round-trip)
+- Book flights with a simulated payment flow
+- Dynamic pricing — ticket price increases 20% when a flight is 60%+ full
+- View upcoming and past flights, cancel bookings up to 24 hours before departure
+- Rate and review completed flights
 
-## Make a new branch
+### Airline Staff
+- View upcoming flights for their airline (next 30 days)
+- Create new flights and edit existing ones
+- Update flight status (on-time, delayed, cancelled)
+- Add airports and airplanes to the system
+- Look up the customer manifest for any flight
+- View per-flight ratings and passenger reviews
+- Generate ticket sales reports with custom date range filters
 
-The main branch is where the final approved code will be. For testing, make a branch first to keep you own changes trackable.
+## Tech Stack
 
-1. Go to the terminal assigned to the cloned repository and run `git checkout -b your_branch` where **your branch** is the name of the branch, best to put your name and the feature you are working on (E.g John_Add_Flights).
-2. Commit your changes
-3. Check with `git branch` to see branch. The one with the \* is the current branch you are working on.
+- **Backend:** Python, Flask, Flask Blueprints
+- **Database:** MySQL (via PyMySQL)
+- **Templating:** Jinja2
+- **Frontend:** HTML, CSS
 
-## Pull Request
+## Setup
 
-1. When done with the code, do a pull request to merge your changes with the main branch
+### Prerequisites
+- Python 3
+- [MAMP](https://www.mamp.info/) (or any MySQL server)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mop9047/flight_search.git
+   cd flight_search
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install flask pymysql
+   ```
+
+3. Set up the database:
+   - Start your MySQL server
+   - Create a database named `flights_new`
+   - Run the schema file to create all tables:
+     ```sql
+     source app/create_tables.SQL
+     ```
+
+4. Configure the database connection in `app/__init__.py` to match your MySQL host, user, password, and socket path.
+
+5. Run the app:
+   ```bash
+   python run.py
+   ```
+
+6. Open `http://127.0.0.1:8889` in your browser.
+
+## Database Schema
+
+The schema includes 9 tables with proper foreign key relationships:
+
+`Customer` · `Airline` · `Airport` · `Airplane` · `Airline_Staff` · `Flight` · `Ticket` · `Purchases` · `Review`
